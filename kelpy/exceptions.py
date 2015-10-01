@@ -4,19 +4,28 @@ class ParseException(Exception):
 
 class UnbalancedBracesException(ParseException):
     def __init__(self, expression=None):
-        if expression is None:
-            super(UnbalancedBracesException, self).__init__(
-                "Unbalanced Braces in parsed expression.")
-        else:
-            super(UnbalancedBracesException, self).__init__(
-                "Unbalanced Braces in parsed expression: '{}'".format(expression))
+        message = "Unbalanced Braces in parsed expression."
+        if expression is not None:
+            message = message[:-1] + ": '{}'".format(expression)
+        super(UnbalancedBracesException, self).__init__(message)
 
 class SuperfluousDataException(ParseException):
     def __init__(self, expression=None):
-        super(SuperfluousDataException, self).__init__(
-            "Extra characters outside braces in expression: '{}'".format(expression))
+        message = "Extra characters outside braces in expression."
+        if expression is not None:
+            message = message[:-1] + ": '{}'".format(expression)
+        super(SuperfluousDataException, self).__init__(message)
 
 class NoExpressionException(ParseException):
     def __init__(self, expression=None):
-        super(NoExpressionException, self).__init__(
-            "No expression found in text: '{}'".format(expression))
+        message = "No expression found in text."
+        if expression is not None:
+            message = message[:-1] + ": '{}'".format(expression)
+        super(NoExpressionException, self).__init__(message)
+
+class NoArgumentsException(ParseException):
+    def __init__(self, expression=None):
+        message = "Cannot create empty expression."
+        if expression is not None:
+            message = message[:-1] + ": '{}'".format(expression)
+        super(NoArgumentsException, self).__init__(message)

@@ -39,18 +39,28 @@ def find_brace_pairs(text):
 
 class PExpression(object):
     def __init__(self, text):
+        """
+        The PExpression is created from the interior of a braced expression.
+        This means that if your base string is:
+            text = "{ one two three }"
+        then you should create the PExpression with:
+            PExpression(text[1:-1])
+        """
+        text = text.strip()
         tokens = []
         pairs = find_brace_pairs(text)
         next_low = 0
         for pair in pairs:
             low, high = pair
-            tokens += text[next_low:low].strip().split()
+            tokens += text[next_low:low].split()
             tokens.append(parse(text[low:high+1]))
             next_low = high + 1
-        tokens += text[next_low:].strip().split()
+        tokens += text[next_low:].split()
         for i in xrange(len(tokens)):
             if not isinstance(tokens[i], PExpression):
                 tokens[i] = PValue(tokens[i])
+        if len(tokens) == 0:
+            raise NoArgumentsException(text)
         self.tokens = tokens
     def __repr__(self):
         return str(self.tokens)
