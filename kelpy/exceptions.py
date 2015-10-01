@@ -1,8 +1,24 @@
-class ParseException(Exception):
+class KelpyException(Exception):
+    """
+    Used to subclass all exceptions in the Kelpy environment. Never created
+    directly.
+    """
+    pass
+
+class InterpretException(KelpyException):
+    def __init__(self, message):
+        super(InterpretException, self).__init__("Interpret Error: {}".format(message))
+
+class BadFunctionException(InterpretException):
+    def __init__(self, function):
+        message = "Tried to evaluate a function without a definition: '{}'".format(function)
+        super(BadFunctionException, self).__init__(message)
+
+class ParseException(KelpyException):
     def __init__(self, message, expression=None):
         if expression is not None:
             message = message[:-1] + ": '{}'".format(expression)
-        super(ParseException, self).__init__("Error: {}".format(message))
+        super(ParseException, self).__init__("Parse Error: {}".format(message))
 
 class UnbalancedBracesException(ParseException):
     def __init__(self, expression=None):
@@ -21,7 +37,7 @@ class NoExpressionException(ParseException):
 
 class FunctionlessExpressionException(ParseException):
     def __init__(self, expression=None):
-        message = "No leading function in expression."
+        message = "No valid leading function in expression."
         super(FunctionlessExpressionException, self).__init__(message, expression)
 
 class NoArgumentsException(ParseException):

@@ -1,5 +1,6 @@
 import re
 from exceptions import *
+from functions import SUPPORTED_FUNCTIONS
 
 def parse(text):
     text = text.strip()
@@ -74,6 +75,8 @@ class PExpression(object):
             raise FunctionlessExpressionException(text)
         # Save those tokens!
         self.tokens = tokens
+        self.function = self.tokens[0]
+        self.arguments = self.tokens[1:]
     def __repr__(self):
         result = "["
         for token in self.tokens[:-1]:
@@ -131,15 +134,10 @@ class PNumber(PValue):
     def __str__(self):
         return self.raw
 
-functions = [
-    '+',
-    '*',
-]
-
 class PFunction(PValue):
     def __init__(self, function):
         self.raw = function.lower()
-        if self.raw not in functions:
+        if self.raw not in SUPPORTED_FUNCTIONS:
             raise InvalidFunctionException(function)
         self.type = 'function'
     def __repr__(self):
