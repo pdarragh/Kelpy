@@ -43,7 +43,6 @@ class PExpression(object):
         for pair in pairs:
             low, high = pair
             tokens += text[next_low:low].strip().split()
-            print("subparsing: '{}'".format(text[low:high+1]))
             tokens.append(parse(text[low:high+1]))
             next_low = high + 1
         tokens += text[next_low:].strip().split()
