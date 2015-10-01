@@ -26,6 +26,8 @@ def get_input():
     :return: input from the user
     """
     inputted = raw_input('>>> ')
+    parsed = kelpy.parse(inputted)
+    print("parsed: {}".format(parsed))
 
 if __name__ == '__main__':
     print_welcome()
@@ -36,3 +38,5 @@ if __name__ == '__main__':
             break
         except EOFError:
             break
+        except kelpy.ParseException as e:
+            print(e.message)
