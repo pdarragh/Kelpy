@@ -1,3 +1,5 @@
+from exceptions import *
+
 def parse(text):
     text = text.strip()
     if text.count('{') == 0:
@@ -58,22 +60,3 @@ class PValue(object):
         self.value = text
     def __repr__(self):
         return self.value
-
-class ParseException(Exception):
-    def __init__(self, message):
-        super(ParseException, self).__init__("Error: {}".format(message))
-
-class UnbalancedBracesException(ParseException):
-    def __init__(self, expression):
-        super(UnbalancedBracesException, self).__init__(
-            "Unbalanced Braces in parsed expression: '{}'".format(expression))
-
-class SuperfluousDataException(ParseException):
-    def __init__(self, expression):
-        super(SuperfluousDataException, self).__init__(
-            "Extra characters outside braces in expression: '{}'".format(expression))
-
-class NoExpressionException(ParseException):
-    def __init__(self, expression):
-        super(NoExpressionException, self).__init__(
-            "No expression found in text: '{}'".format(expression))

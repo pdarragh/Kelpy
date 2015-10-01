@@ -1,3 +1,4 @@
-from parser import parse, ParseException
+from parser import parse
+from exceptions import ParseException
 
-__version__ = '0.2.1'
+__version__ = '0.3.0'
