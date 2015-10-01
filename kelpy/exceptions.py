@@ -19,6 +19,11 @@ class NoExpressionException(ParseException):
         message = "No expression found in text."
         super(NoExpressionException, self).__init__(message, expression)
 
+class FunctionlessExpressionException(ParseException):
+    def __init__(self, expression=None):
+        message = "No leading function in expression."
+        super(FunctionlessExpressionException, self).__init__(message, expression)
+
 class NoArgumentsException(ParseException):
     def __init__(self, expression=None):
         message = "Cannot create empty expression."

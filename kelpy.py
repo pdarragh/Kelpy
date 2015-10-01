@@ -21,19 +21,26 @@ def print_welcome():
 def goodbye():
     print("\nThank you for using Kelpy!")
 
-def get_input():
+def get_input(show_raw=False):
     """
     :return: input from the user
     """
     inputted = raw_input('>>> ')
     parsed = kelpy.parse(inputted)
-    print("parsed: {}".format(parsed))
+    if show_raw:
+        output = repr(parsed)
+    else:
+        output = str(parsed)
+    print(output)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--raw', action='store_true')
+    args = parser.parse_args()
     print_welcome()
     while(True):
         try:
-            get_input()
+            get_input(args.raw)
         except KeyboardInterrupt:
             break
         except EOFError:

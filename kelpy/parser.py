@@ -69,6 +69,9 @@ class PExpression(object):
                 tokens[i] = get_PValue_from_raw(tokens[i])
         if len(tokens) == 0:
             raise NoArgumentsException(text)
+        # Ensure the first token is a function!
+        if not isinstance(tokens[0], PFunction):
+            raise FunctionlessExpressionException(text)
         # Save those tokens!
         self.tokens = tokens
     def __repr__(self):
