@@ -3,6 +3,11 @@ from exceptions import *
 from functions import SUPPORTED_FUNCTIONS
 
 def parse(text):
+    """
+    Returns a PExpression describing the contents of the parsed input.
+
+    :return: PExpression
+    """
     text = text.strip()
     if text.count('{') == 0:
         raise NoExpressionException(text)

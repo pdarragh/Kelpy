@@ -14,6 +14,11 @@ class BadFunctionException(InterpretException):
         message = "Tried to evaluate a function without a definition: '{}'".format(function)
         super(BadFunctionException, self).__init__(message)
 
+class InvalidArgumentsException(InterpretException):
+    def __init__(self, function, arguments):
+        message = "Function: {}. Invalid arguments given: {}".format(function, arguments)
+        super(InvalidArgumentsException, self).__init__(message)
+
 class ParseException(KelpyException):
     def __init__(self, message, expression=None):
         if expression is not None:

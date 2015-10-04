@@ -9,5 +9,14 @@ def interpret(pexpression):
     if not isinstance(pexpression, PExpression):
         raise InterpretException("Not a parsed expression: {}".format(pexpression))
     function  = pexpression.function
-    arguments = pexpression.arguments
-    handle_function(function, arguments)
+    arguments = interpret_arguments(pexpression.arguments)
+    return handle_function(function, arguments)
+
+def interpret_arguments(arguments):
+    result = []
+    for argument in arguments:
+        result.append(interpret_expression(argument))
+    return result
+
+def interpret_expression(expression):
+    pass
