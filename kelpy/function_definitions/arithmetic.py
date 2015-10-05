@@ -1,19 +1,51 @@
 from ..exceptions import *
 
-def add(*args):
-    print("add")
-    if len(args) <= 0:
-        raise InvalidArgumentsException('+', args)
-    elif len(args) == 1:
-        return args[0]
+def are_valid_arguments(arguments):
+    for argument in arguments:
+        if not isinstance(argument, int) and not isinstance(argument, float):
+            return False
+    return True
+
+def add(arguments):
+    if not are_valid_arguments(arguments) or len(arguments) <= 0:
+        raise InvalidArgumentsException('+', arguments)
+    elif len(arguments) == 1:
+        return arguments[0]
     else:
-        result = args[0]
-        for arg in args[1:]:
-            result += arg
+        result = arguments[0]
+        for argument in arguments[1:]:
+            result += argument
         return result
-def subtract(*args):
-    print("subtract")
-def multiply(*args):
-    print("multiply")
-def divide(*args):
-    print("divide")
+
+def subtract(arguments):
+    if not are_valid_arguments(arguments) or len(arguments) <= 0:
+        raise InvalidArgumentsException('-', arguments)
+    elif len(arguments) == 1:
+        return arguments[0]
+    else:
+        result = arguments[0]
+        for argument in arguments[1:]:
+            result -= argument
+        return result
+
+def multiply(arguments):
+    if not are_valid_arguments(arguments) or len(arguments) <= 0:
+        raise InvalidArgumentsException('*', arguments)
+    elif len(arguments) == 1:
+        return arguments[0]
+    else:
+        result = arguments[0]
+        for argument in arguments[1:]:
+            result *= argument
+        return result
+
+def divide(arguments):
+    if not are_valid_arguments(arguments) or len(arguments) <= 0:
+        raise InvalidArgumentsException('/', arguments)
+    elif len(arguments) == 1:
+        return arguments[0]
+    else:
+        result = arguments[0]
+        for argument in arguments[1:]:
+            result /= argument
+        return result

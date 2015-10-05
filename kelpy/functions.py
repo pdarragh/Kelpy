@@ -5,7 +5,7 @@ SUPPORTED_FUNCTIONS = [
     '*', '/',
 ]
 
-def handle_function(function, *arguments):
+def handle_function(function, arguments):
     raw = function.raw
     if raw == '+':
         return arithmetic.add(arguments)

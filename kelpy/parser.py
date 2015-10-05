@@ -134,10 +134,14 @@ class PNumber(PValue):
                 re.match(floating_wd, self.raw)):
             raise InvalidNumberException(number)
         self.type = 'number'
+        if re.match(integer, self.raw):
+            self.value = int(self.raw)
+        else:
+            self.value = float(self.raw)
     def __repr__(self):
         return "<num: {raw}>".format(raw=self.raw)
     def __str__(self):
-        return self.raw
+        return str(self.value)
 
 class PFunction(PValue):
     def __init__(self, function):

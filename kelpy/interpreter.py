@@ -10,7 +10,8 @@ def interpret(pexpression):
         raise InterpretException("Not a parsed expression: {}".format(pexpression))
     function  = pexpression.function
     arguments = interpret_arguments(pexpression.arguments)
-    return handle_function(function, arguments)
+    result = handle_function(function, arguments)
+    return result
 
 def interpret_arguments(arguments):
     result = []
@@ -19,4 +20,11 @@ def interpret_arguments(arguments):
     return result
 
 def interpret_expression(expression):
-    pass
+    if isinstance(expression, PExpression):
+        return interpret(expression)
+    elif isinstance(expression, PNumber):
+        return expression.value
+    elif isinstance(expression, PFunction):
+        raise BadFunctionException(expression)
+    elif isinstance(expression, PSymbol):
+        return expression

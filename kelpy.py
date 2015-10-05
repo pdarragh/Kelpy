@@ -46,10 +46,11 @@ if __name__ == '__main__':
         try:
             pexpression = get_parsed_input(args.raw, args.quiet)
             if not args.parse_only:
-                kelpy.interpret(pexpression)
+                result = kelpy.interpret(pexpression)
+                print(result)
         except KeyboardInterrupt:
             break
         except EOFError:
             break
-        except kelpy.ParseException as e:
+        except kelpy.KelpyException as e:
             print(e.message)
