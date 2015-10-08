@@ -1,32 +1,56 @@
-import re
 from exceptions import *
+from types import *
 from functions import SUPPORTED_FUNCTIONS
 
 def parse(text):
-    """
-    Returns a PExpression describing the contents of the parsed input.
-
-    :return: PExpression
-    """
+    # Strip the text of extra whitespace.
     text = text.strip()
-    if text.count('{') == 0:
-        raise NoExpressionException(text)
+    # Now ensure the braces are balanced (if there are any).
+    #TODO: Replace this with an auto-indent form.
     if text.count('{') != text.count('}'):
         raise UnbalancedBracesException(text)
-    if text[0] != '{' or text[-1] != '}':
-        raise SuperfluousDataException(text)
-    return PExpression(text[1:-1])
+    # Begin parsing for KExpressions.
+    if kexp_match("NUMBER", text):
+        return KNumber(text)
+    elif kexp_match("SYMBOL", text):
+        return KSymbol(text)
+    elif kexp_match("{+ ANY ANY}", text):
+        l = parse(kexp_to_list(text)[1])
+        r = parse(kexp_to_list(text)[2])
+        return KFAdd(text, l, r)
+    elif kexp_match("{* ANY ANY}", text):
+        l = parse(kexp_to_list(text)[1])
+        r = parse(kexp_to_list(text)[2])
+        return KFMultiply(text, l, r)
+    else:
+        raise ParseException("Invalid input.")
 
-def find_brace_pairs(text):
-    if not text:
-        return []
-    text = text.strip()
-    pairs = []
-    l_index = text.find('{')
-    while l_index >=0 and l_index < len(text):
-        count = 1
-        r_index = l_index
-        for i in xrange(l_index + 1, len(text)):
+def kexp_to_list(rawkexp):
+    """
+    Converts a raw KExpression form into a list of KExpressions.
+
+    This requires that the string is a full KExpression, with braces on either
+    side of the string.
+
+    :return: A list of strings of possible KExpressions.
+    """
+    kexps = []
+    if rawkexp[0] == '{' and rawkexp[-1] == '}':
+        rawkexp = rawkexp[1:-1]
+    rawkexp = rawkexp.strip()
+    while len(rawkexp) > 0:
+        kexp = get_smallest_kexp_from_string(rawkexp)
+        kexps.append(kexp)
+        rawkexp = rawkexp[len(kexp):]
+        rawkexp = rawkexp.strip()
+    return kexps
+
+def get_text_through_matching_brace(text):
+    if text[0] == '{':
+        # Find the matching closing brace.
+        count = 0
+        r_index = 0
+        for i in xrange(len(text)):
             char = text[i]
             if char == '{':
                 count += 1
@@ -35,121 +59,129 @@ def find_brace_pairs(text):
             if count == 0:
                 r_index = i
                 break
-        if r_index <= l_index:
+        if r_index <= 0:
             raise UnbalancedBracesException(text)
-        pairs.append( (l_index, r_index) )
-        move_forward = text[r_index:].find('{')
-        if move_forward == -1:
-            break
-        l_index = r_index + move_forward
-    return pairs
+        return text[:r_index + 1]
+    else:
+        return ""
 
-class PExpression(object):
-    def __init__(self, text):
-        """
-        The PExpression is created from the interior of a braced expression.
-        This means that if your base string is:
-            text = "{ one two three }"
-        then you should create the PExpression with:
-            PExpression(text[1:-1])
-        """
-        # Strip the text. This fixes some problems.
-        text = text.strip()
-        # Prepare a place to store all the parsed tokens.
-        tokens = []
-        # Find the brace pairs. This is used to group expressions and values.
-        pairs = find_brace_pairs(text)
-        # Iterate over each pair. Each pair represents an expression, so
-        # everything within a brace pair will be parsed as a PExpression via
-        # `parse`, and everything else will be put into a PValue.
-        next_low = 0
-        for pair in pairs:
-            low, high = pair
-            tokens += text[next_low:low].split()
-            tokens.append(parse(text[low:high+1]))
-            next_low = high + 1
-        tokens += text[next_low:].split() # get the last token
-        # Iterate over the tokens, replacing them with their parsed values.
-        for i in xrange(len(tokens)):
-            if not isinstance(tokens[i], PExpression):
-                tokens[i] = get_PValue_from_raw(tokens[i])
-        if len(tokens) == 0:
-            raise NoArgumentsException(text)
-        # Ensure the first token is a function!
-        if not isinstance(tokens[0], PFunction):
-            raise FunctionlessExpressionException(text)
-        # Save those tokens!
-        self.tokens = tokens
-        self.function = self.tokens[0]
-        self.arguments = self.tokens[1:]
-    def __repr__(self):
-        result = "["
-        for token in self.tokens[:-1]:
-            result += repr(token) + ", "
-        result += repr(self.tokens[-1]) + "]"
-        return result
-    def __str__(self):
-        result = "("
-        for token in self.tokens[:-1]:
-            result += str(token) + " "
-        result += str(self.tokens[-1]) + ")"
-        return result
+def get_smallest_kexp_from_string(text):
+    """
+    Takes a string and finds the smallest possible complete KExpression
+    beginning with the first character.
 
-def get_PValue_from_raw(raw):
-    try:
-        return PNumber(raw)
-    except InvalidNumberException:
-        # Not a number...
-        pass
-    try:
-        return PFunction(raw)
-    except InvalidFunctionException:
-        # Not a function...
-        pass
-    # Must be a symbol.
-    return PSymbol(raw)
+    :param text: The text to search against from the beginning.
+    :return: A string containing the smallest complete raw KExpression.
+    """
+    if not text.strip():
+        # Ensure that we don't throw an error if the text is blank.
+        return ""
+    if text[0] == "'" and text[1] == '{':
+        # Find the shortest matching brace expression starting after the
+        # quote mark.
+        return "'" + get_text_through_matching_brace(text[1:])
+    elif text[0] == '{':
+        # Find the shortest matching brace expression.
+        return get_text_through_matching_brace(text)
+    else:
+        # In case the expression is attached to a brace, remove it.
+        if text.find('}') >= 0:
+            text = text[:text.find('}')]
+        # Just get the whole first word.
+        return text.split()[0]
 
-class PValue(object):
-    def __init__(self, raw):
-        self.raw = raw
-        self.type = 'raw'
+# This list describes the possible symbols that `type_match` should be able to
+# handle. Expand as needed.
+valid_types = [
+    'NUMBER',
+    'SYMBOL',
+    'ANY'
+]
 
-class PSymbol(PValue):
-    def __init__(self, symbol):
-        self.raw = symbol
-        self.type = 'symbol'
-    def __repr__(self):
-        return "<sym: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return "'{raw}".format(raw=self.raw)
+def kexp_match(symbolic_text, literal_text):
+    """
+    Compares an expression text to the specially-formatted match_text to
+    determine whether they are equivalent.
 
-class PNumber(PValue):
-    def __init__(self, number):
-        self.raw = number
-        integer     = re.compile(r"^-?\d+$")
-        floating_nd = re.compile(r"^-?\d+.\d*$")
-        floating_wd = re.compile(r"^-?\d*.\d+$")
-        if not (re.match(integer, self.raw) or
-                re.match(floating_nd, self.raw) or
-                re.match(floating_wd, self.raw)):
-            raise InvalidNumberException(number)
-        self.type = 'number'
-        if re.match(integer, self.raw):
-            self.value = int(self.raw)
-        else:
-            self.value = float(self.raw)
-    def __repr__(self):
-        return "<num: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return str(self.value)
+    :param symbolic_text: A string to match against. It can contain the symbols
+        listed in `valid_types`, which describe the types of KExpressions to
+        look for in the literal text.
+    :param literal_text: The text inputted into the parser.
+    :return: Boolean value describing equality.
+    """
+    #print("Symbolic: '{}'".format(symbolic_text))
+    #print("Literal:  '{}'".format(literal_text))
+    while any(t in symbolic_text for t in valid_types):
+        #print("  Found a symbol.")
+        next_type = None
+        next_type_index = len(symbolic_text)
+        for t in valid_types:
+            index = symbolic_text.find(t)
+            if  index < 0:
+                continue
+            if index < next_type_index:
+                next_type = t
+                next_type_index = index
+                break
+        #print("    Symbol: {}".format(next_type))
+        # Now we know which type is in the symbolic text and where it starts.
+        # Compare the two strings up to that point.
+        #print("  Comparing: '{}' == '{}'".format(symbolic_text[:next_type_index], literal_text[:next_type_index]))
+        if symbolic_text[:next_type_index] != literal_text[:next_type_index]:
+            #print("  False")
+            return False
+        #print("    True")
+        # They're equal on a literal level. Now truncate to that point and find
+        # and compare the expressions.
+        #print("  Adjusting strings.")
+        symbolic_text = symbolic_text[next_type_index:]
+        literal_text  = literal_text[next_type_index:]
+        # Advance the symbolic text past the symbol.
+        symbolic_text = symbolic_text[len(next_type):]
+        #print("    symbolic: {}".format(symbolic_text))
+        #print("    literal: {}".format(literal_text))
+        # Get the shortest KExpression out of the literal text.
+        kexp = get_smallest_kexp_from_string(literal_text)
+        #print("  Smallest kexp: '{}'".format(kexp))
+        # Check that that KExpression matches what the symbolic string things it
+        # should match.
+        #print("  Comparing kexp to type: {}".format(next_type))
+        if not type_match(kexp, next_type):
+            #print("    False")
+            return False
+        #print("    True")
+        literal_text = literal_text[len(kexp):]
+    #print("  Testing remaining: {} == {}".format(symbolic_text, literal_text))
+    return symbolic_text == literal_text
 
-class PFunction(PValue):
-    def __init__(self, function):
-        self.raw = function.lower()
-        if self.raw not in SUPPORTED_FUNCTIONS:
-            raise InvalidFunctionException(function)
-        self.type = 'function'
-    def __repr__(self):
-        return "<func: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return self.raw
+def type_match(text, expression_type):
+    """
+    Given a set of text and a type, determines whether the given text could be
+    converted to that type.
+
+    :param text: The raw input to build the expression from.
+    :param expression_type: One of the valid types to match against.
+    :return: A boolean for whether the typecasting is successful.
+    """
+    if not expression_type in valid_types:
+        raise InvalidExpressionTypeException(expression_type)
+    if expression_type == 'NUMBER':
+        try:
+            KNumber(text)
+            return True
+        except ParseException:
+            return False
+    elif expression_type == 'SYMBOL':
+        try:
+            KSymbol(text)
+            return True
+        except ParseException:
+            return False
+    elif expression_type == 'ANY':
+        try:
+            KExpression(text)
+            return True
+        except ParseException:
+            return False
+    else:
+        raise ImplementationException("Unhandled type match in kelpy.parser.type_match: {}".format(expression_type))

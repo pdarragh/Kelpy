@@ -1,9 +1,39 @@
+################################################################################
+#
+# exceptions.py
+#
+# This module defines all of the exceptions used in the Kelpy environment.
+#
+################################################################################
+
+################################################################################
+# KelpyException
+#
+# The root object from which all other custom exceptions are made. This makes it
+# convenient to write try/except blocks around.
+####
+
 class KelpyException(Exception):
     """
     Used to subclass all exceptions in the Kelpy environment. Never created
     directly.
     """
     pass
+
+################################################################################
+# Implementation Exception
+#
+# These are errors in the implementation, such as if a method is called
+# correctly with valid values but there is nothing to handle it.
+####
+
+class ImplementationException(KelpyException):
+    def __init__(self, message):
+        super(ImplementationException, self).__init__("Implementation Error: {}".format(message))
+
+################################################################################
+# Interpreter Exceptions
+####
 
 class InterpretException(KelpyException):
     def __init__(self, message):
@@ -18,6 +48,10 @@ class InvalidArgumentsException(InterpretException):
     def __init__(self, function, arguments):
         message = "Function: {}. Invalid arguments given: {}".format(function, arguments)
         super(InvalidArgumentsException, self).__init__(message)
+
+################################################################################
+# Parser Exceptions
+####
 
 class ParseException(KelpyException):
     def __init__(self, message, expression=None):
@@ -59,3 +93,13 @@ class InvalidNumberException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid number format given."
         super(InvalidNumberException, self).__init__(message, expression)
+
+class InvalidSymbolException(ParseException):
+    def __init__(self, expression=None):
+        message = "Invalid symbol format given."
+        super(InvalidSymbolException, self).__init__(message, expression)
+
+class InvalidExpressionTypeException(ParseException):
+    def __init__(self, expression=None):
+        message = "Invalid expression type given to parser."
+        super(InvalidExpressionTypeException, self).__init__(message, expression)

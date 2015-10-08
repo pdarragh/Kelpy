@@ -26,14 +26,15 @@ def get_parsed_input(show_raw=False, suppress_output=False):
     :return: input from the user
     """
     user_input = raw_input('>>> ')
-    pexpression = kelpy.parse(user_input)
+    kexp = kelpy.parse(user_input)
     if show_raw:
-        output = repr(pexpression)
+        output = repr(kexp)
     else:
-        output = str(pexpression)
+        output = str(kexp)
     if not suppress_output:
+        print("~ {}".format(kexp.type))
         print(output)
-    return pexpression
+    return kexp
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -44,10 +45,10 @@ if __name__ == '__main__':
     print_welcome()
     while(True):
         try:
-            pexpression = get_parsed_input(args.raw, args.quiet)
-            if not args.parse_only:
-                result = kelpy.interpret(pexpression)
-                print(result)
+            kexp = get_parsed_input(args.raw, args.quiet)
+            # if not args.parse_only:
+            #     result = kelpy.interpret(kexp)
+            #     print(result)
         except KeyboardInterrupt:
             break
         except EOFError:

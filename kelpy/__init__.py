@@ -1,5 +1,5 @@
 from parser import parse
-from interpreter import interpret
+# from interpreter import interpret
 from exceptions import KelpyException
 
-__version__ = '0.6.1'
+__version__ = '0.7.0'
