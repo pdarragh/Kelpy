@@ -1,6 +1,5 @@
 from exceptions import *
 from types import *
-from functions import SUPPORTED_FUNCTIONS
 
 def parse(text):
     # Strip the text of extra whitespace.

@@ -1,5 +1,5 @@
 from exceptions import *
-from parser import *
+from types import *
 from functions import handle_function
 
 def interpret(kexp):
@@ -9,28 +9,19 @@ def interpret(kexp):
     if not isinstance(kexp, KExpression):
         raise InterpretException("Not a parsed expression: {}".format(kexp))
     if isinstance(kexp, KNumber):
-        return kexp.value
+        return kexp
     elif isinstance(kexp, KSymbol):
         print("need lookup")
-        return 0
+        return kexp
     elif isinstance(kexp, KFunctionExpression):
-        handle_function(kexp)
+        return handle_function(interpret_arguments(kexp))
     else:
         raise RuntimeError()
-    return result
 
-def interpret_arguments(arguments):
-    result = []
+def interpret_arguments(kfunction):
+    arguments = kfunction.args
+    interpreted = []
     for argument in arguments:
-        result.append(interpret_expression(argument))
-    return result
-
-def interpret_expression(expression):
-    if isinstance(expression, kexp):
-        return interpret(expression)
-    elif isinstance(expression, PNumber):
-        return expression.value
-    elif isinstance(expression, PFunction):
-        raise BadFunctionException(expression)
-    elif isinstance(expression, PSymbol):
-        return expression
+        interpreted.append(interpret(argument))
+    kfunction.args = tuple(interpreted)
+    return kfunction

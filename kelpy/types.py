@@ -7,6 +7,7 @@
 
 import re
 from exceptions import *
+from functions import FUNCTION_MAP
 
 ################################################################################
 # KObject
@@ -41,24 +42,18 @@ class KExpression(KObject):
 #   - function expressions
 ####
 
-# These are used for simplifying things.
-function_names = {
-    '+': 'Add',
-    '*': 'Multiply'
-}
-
 class KFunctionExpression(KExpression):
     def __init__(self, raw, function, args):
         self.raw        = raw
         self.function   = function
         self.args       = args
-        self.type       = "KF{}".format(function_names[self.function])
+        self.type       = "KF{}".format(FUNCTION_MAP[self.function][0])
     def __repr__(self):
         return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
     def __str__(self):
         return "{type}({arguments})".format(
             type        = self.type,
-            arguments   = ' '.join([str(argument) for argument in self.args]))
+            arguments   = ', '.join([str(argument) for argument in self.args]))
 
 class KFAdd(KFunctionExpression):
     def __init__(self, raw, *args):
@@ -103,3 +98,15 @@ class KNumber(KExpression):
         return "<num: {raw}>".format(raw=self.raw)
     def __str__(self):
         return str(self.value)
+    def __add__(self, other):
+        return KNumber(str(self.value + other.value))
+    def __sub__(self, other):
+        return KNumber(str(self.value - other.value))
+    def __mul__(self, other):
+        return KNumber(str(self.value * other.value))
+    def __floordiv__(self, other):
+        return KNumber(str(self.value // other.value))
+    def __div__(self, other):
+        return KNumber(str(self.value / other.value))
+    def __mod__(self, other):
+        return KNumber(str(self.value % other.value))

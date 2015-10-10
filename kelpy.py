@@ -32,8 +32,7 @@ def get_parsed_input(show_raw=False, suppress_output=False):
     else:
         output = str(kexp)
     if not suppress_output:
-        print("~ {}".format(kexp.type))
-        print(output)
+        print("~ {}".format(output))
     return kexp
 
 if __name__ == '__main__':
@@ -46,9 +45,9 @@ if __name__ == '__main__':
     while(True):
         try:
             kexp = get_parsed_input(args.raw, args.quiet)
-            # if not args.parse_only:
-            #     result = kelpy.interpret(kexp)
-            #     print(result)
+            if not args.parse_only:
+                result = kelpy.interpret(kexp)
+                print(result)
         except KeyboardInterrupt:
             break
         except EOFError:

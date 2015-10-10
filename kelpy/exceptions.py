@@ -39,10 +39,10 @@ class InterpretException(KelpyException):
     def __init__(self, message):
         super(InterpretException, self).__init__("Interpret Error: {}".format(message))
 
-class BadFunctionException(InterpretException):
+class InvalidFunctionException(InterpretException):
     def __init__(self, function):
         message = "Tried to evaluate a function without a definition: '{}'".format(function)
-        super(BadFunctionException, self).__init__(message)
+        super(InvalidFunctionException, self).__init__(message)
 
 class InvalidArgumentsException(InterpretException):
     def __init__(self, function, arguments):

@@ -1,19 +1,12 @@
 from function_definitions import *
 
-SUPPORTED_FUNCTIONS = [
-    '+', '-',
-    '*', '/',
-]
+FUNCTION_MAP = {
+    '+': ('Add', arithmetic.add),
+    '*': ('Multiply', arithmetic.multiply)
+}
 
-def handle_function(function, arguments):
-    raw = function.raw
-    if raw == '+':
-        return arithmetic.add(arguments)
-    elif raw == '-':
-        return arithmetic.subtract(arguments)
-    elif raw == '*':
-        return arithmetic.multiply(arguments)
-    elif raw == '/':
-        return arithmetic.divide(arguments)
-    else:
-        raise BadFunctionException(raw)
+def handle_function(kfunction):
+    try:
+        return FUNCTION_MAP[kfunction.function][1](kfunction.args)
+    except KeyError:
+        raise InvalidFunctionException(kfunction.function)
