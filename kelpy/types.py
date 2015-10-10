@@ -10,6 +10,7 @@ from exceptions import *
 
 ################################################################################
 # KObject
+#   - in case there's ever more than just KExpression, here's the top-top-level
 ####
 
 class KObject(object):
@@ -17,12 +18,13 @@ class KObject(object):
         self.raw = str(args)
         self.type = "KObject"
     def __repr__(self):
-        return "<kobjc: {raw}>".format(raw=self.raw)
+        return "<kobj: {raw}>".format(raw=self.raw)
     def __str__(self):
         return self.raw
 
 ################################################################################
 # KExpression
+#   - top-level class from which the others inherit
 ####
 
 class KExpression(KObject):
@@ -68,7 +70,7 @@ class KFMultiply(KFunctionExpression):
 
 ################################################################################
 # KExpression
-#   - "primitive" types
+#   - wrappers for primitives
 ####
 
 class KSymbol(KExpression):

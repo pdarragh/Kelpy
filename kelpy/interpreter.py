@@ -2,15 +2,21 @@ from exceptions import *
 from parser import *
 from functions import handle_function
 
-def interpret(pexpression):
+def interpret(kexp):
     """
-    Takes an inputted PExpression and evaluates its contents.
+    Takes an inputted KExpression and evaluates its contents.
     """
-    if not isinstance(pexpression, PExpression):
-        raise InterpretException("Not a parsed expression: {}".format(pexpression))
-    function  = pexpression.function
-    arguments = interpret_arguments(pexpression.arguments)
-    result = handle_function(function, arguments)
+    if not isinstance(kexp, KExpression):
+        raise InterpretException("Not a parsed expression: {}".format(kexp))
+    if isinstance(kexp, KNumber):
+        return kexp.value
+    elif isinstance(kexp, KSymbol):
+        print("need lookup")
+        return 0
+    elif isinstance(kexp, KFunctionExpression):
+        handle_function(kexp)
+    else:
+        raise RuntimeError()
     return result
 
 def interpret_arguments(arguments):
@@ -20,7 +26,7 @@ def interpret_arguments(arguments):
     return result
 
 def interpret_expression(expression):
-    if isinstance(expression, PExpression):
+    if isinstance(expression, kexp):
         return interpret(expression)
     elif isinstance(expression, PNumber):
         return expression.value
