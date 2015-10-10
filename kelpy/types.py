@@ -43,7 +43,7 @@ class KExpression(KObject):
 ####
 
 class KFunctionExpression(KExpression):
-    def __init__(self, raw, function, args):
+    def __init__(self, raw, function, *args):
         self.raw        = raw
         self.function   = function
         self.args       = args
@@ -54,14 +54,6 @@ class KFunctionExpression(KExpression):
         return "{type}({arguments})".format(
             type        = self.type,
             arguments   = ', '.join([str(argument) for argument in self.args]))
-
-class KFAdd(KFunctionExpression):
-    def __init__(self, raw, *args):
-        super(KFAdd, self).__init__(raw, '+', args)
-
-class KFMultiply(KFunctionExpression):
-    def __init__(self, raw, *args):
-        super(KFMultiply, self).__init__(raw, '*', args)
 
 ################################################################################
 # KExpression

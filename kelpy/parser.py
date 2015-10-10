@@ -1,5 +1,6 @@
 from exceptions import *
 from types import *
+from functions import FUNCTION_MAP
 
 def parse(text):
     # Strip the text of extra whitespace.
@@ -13,14 +14,12 @@ def parse(text):
         return KNumber(text)
     elif kexp_match("SYMBOL", text):
         return KSymbol(text)
-    elif kexp_match("{+ ANY ANY}", text):
-        l = parse(kexp_to_list(text)[1])
-        r = parse(kexp_to_list(text)[2])
-        return KFAdd(text, l, r)
-    elif kexp_match("{* ANY ANY}", text):
-        l = parse(kexp_to_list(text)[1])
-        r = parse(kexp_to_list(text)[2])
-        return KFMultiply(text, l, r)
+    elif kexp_match("FUNCTION ANY ANY", text[1:-1]):
+        parses = kexp_to_list(text)
+        f = parses[0] # Don't parse this. It won't go well.
+        l = parse(parses[1])
+        r = parse(parses[2])
+        return KFunctionExpression(text, f, l, r)
     else:
         raise ParseException("Invalid input.")
 
@@ -94,6 +93,7 @@ def get_smallest_kexp_from_string(text):
 valid_types = [
     'NUMBER',
     'SYMBOL',
+    'FUNCTION',
     'ANY'
 ]
 
@@ -108,10 +108,10 @@ def kexp_match(symbolic_text, literal_text):
     :param literal_text: The text inputted into the parser.
     :return: Boolean value describing equality.
     """
-    #print("Symbolic: '{}'".format(symbolic_text))
-    #print("Literal:  '{}'".format(literal_text))
+    # print("Symbolic: '{}'".format(symbolic_text))
+    # print("Literal:  '{}'".format(literal_text))
     while any(t in symbolic_text for t in valid_types):
-        #print("  Found a symbol.")
+        # print("  Found a symbol.")
         next_type = None
         next_type_index = len(symbolic_text)
         for t in valid_types:
@@ -122,35 +122,37 @@ def kexp_match(symbolic_text, literal_text):
                 next_type = t
                 next_type_index = index
                 break
-        #print("    Symbol: {}".format(next_type))
+        # print("    Symbol: {}".format(next_type))
         # Now we know which type is in the symbolic text and where it starts.
         # Compare the two strings up to that point.
-        #print("  Comparing: '{}' == '{}'".format(symbolic_text[:next_type_index], literal_text[:next_type_index]))
-        if symbolic_text[:next_type_index] != literal_text[:next_type_index]:
-            #print("  False")
+        symbolic_to_next = symbolic_text[:next_type_index]
+        literal_to_next  = literal_text[:next_type_index]
+        # print("  Comparing: '{}' == '{}'".format(symbolic_to_next, literal_to_next))
+        if symbolic_to_next != literal_to_next:
+            # print("  False")
             return False
-        #print("    True")
+        # print("    True")
         # They're equal on a literal level. Now truncate to that point and find
         # and compare the expressions.
-        #print("  Adjusting strings.")
+        # print("  Adjusting strings.")
         symbolic_text = symbolic_text[next_type_index:]
         literal_text  = literal_text[next_type_index:]
         # Advance the symbolic text past the symbol.
         symbolic_text = symbolic_text[len(next_type):]
-        #print("    symbolic: {}".format(symbolic_text))
-        #print("    literal: {}".format(literal_text))
+        # print("    symbolic: {}".format(symbolic_text))
+        # print("    literal: {}".format(literal_text))
         # Get the shortest KExpression out of the literal text.
         kexp = get_smallest_kexp_from_string(literal_text)
-        #print("  Smallest kexp: '{}'".format(kexp))
+        # print("  Smallest kexp: '{}'".format(kexp))
         # Check that that KExpression matches what the symbolic string things it
         # should match.
-        #print("  Comparing kexp to type: {}".format(next_type))
+        # print("  Comparing kexp to type: {}".format(next_type))
         if not type_match(kexp, next_type):
-            #print("    False")
+            # print("    False")
             return False
-        #print("    True")
+        # print("    True")
         literal_text = literal_text[len(kexp):]
-    #print("  Testing remaining: {} == {}".format(symbolic_text, literal_text))
+    # print("  Testing remaining: {} == {}".format(symbolic_text, literal_text))
     return symbolic_text == literal_text
 
 def type_match(text, expression_type):
@@ -175,6 +177,11 @@ def type_match(text, expression_type):
             KSymbol(text)
             return True
         except ParseException:
+            return False
+    elif expression_type == 'FUNCTION':
+        if text in FUNCTION_MAP:
+            return True
+        else:
             return False
     elif expression_type == 'ANY':
         try:

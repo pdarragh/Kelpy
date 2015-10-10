@@ -2,7 +2,10 @@ from function_definitions import *
 
 FUNCTION_MAP = {
     '+': ('Add', arithmetic.add),
-    '*': ('Multiply', arithmetic.multiply)
+    '*': ('Multiply', arithmetic.multiply),
+    '-': ('Subtract', arithmetic.subtract),
+    '/': ('Divide', arithmetic.divide),
+    '%': ('Modulo', arithmetic.modulo)
 }
 
 def handle_function(kfunction):
