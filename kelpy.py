@@ -21,11 +21,10 @@ def print_welcome():
 def goodbye():
     print("\nThank you for using Kelpy!")
 
-def get_parsed_input(show_raw=False, suppress_output=False):
+def get_parsed_input(user_input, show_raw=False, suppress_output=False):
     """
     :return: input from the user
     """
-    user_input = raw_input('>>> ')
     kexp = kelpy.parse(user_input)
     if show_raw:
         output = repr(kexp)
@@ -34,6 +33,18 @@ def get_parsed_input(show_raw=False, suppress_output=False):
     if not suppress_output:
         print("~ {}".format(output))
     return kexp
+
+def kelp_help():
+    print("Built-in help function! It does nothing for now. Sorry.")
+
+def exit():
+    raise KeyboardInterrupt
+
+BUILTINS = {
+    'help': kelp_help,
+    'exit': exit,
+    'quit': exit,
+}
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -44,7 +55,11 @@ if __name__ == '__main__':
     print_welcome()
     while(True):
         try:
-            kexp = get_parsed_input(args.raw, args.quiet)
+            user_input = raw_input('>>> ')
+            if user_input in BUILTINS:
+                BUILTINS[user_input]()
+                continue
+            kexp = get_parsed_input(user_input, args.raw, args.quiet)
             if not args.parse_only:
                 result = kelpy.interpret(kexp)
                 print(result)
