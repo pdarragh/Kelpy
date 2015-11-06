@@ -38,7 +38,7 @@ class KExpression(KObject):
         return "{raw}".format(raw=self.raw)
 
 ################################################################################
-# KExpression
+# KFunctionExpression
 #   - function expressions
 ####
 
@@ -56,11 +56,37 @@ class KFunctionExpression(KExpression):
             arguments   = ', '.join([str(argument) for argument in self.args]))
 
 ################################################################################
-# KExpression
+# KIf
+#   - if expression
+####
+
+class KIf(KExpression):
+    def __init__(self, raw, test, result_true, result_false):
+        self.raw    = raw
+        self.test   = test
+        self.true   = result_true
+        self.false  = result_false
+        self.type   = "KIf"
+    def __repr__(self):
+        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
+    def __str__(self):
+        return "{type}({test} ? {true} : {false})".format(
+            type    = self.type,
+            test    = self.test,
+            true    = self.true,
+            false   = self.false
+        )
+
+################################################################################
+# KPrimitive
 #   - wrappers for primitives
 ####
 
-class KSymbol(KExpression):
+class KPrimitive(KExpression):
+    def __init__(self, raw):
+        raise RawPrimitiveException(raw)
+
+class KSymbol(KPrimitive):
     def __init__(self, raw):
         if not raw[0] == "'":
             raise InvalidSymbolException(raw)
@@ -71,7 +97,29 @@ class KSymbol(KExpression):
     def __str__(self):
         return "{raw}".format(raw=self.raw)
 
-class KNumber(KExpression):
+class KBoolean(KPrimitive):
+    def __init__(self, raw):
+        if str(raw).lower() in ('true', '#t'):
+            self.value = True
+        elif str(raw).lower() in ('false', '#f'):
+            self.value = False
+        elif isinstance(raw, KBoolean):
+            self.value = raw.value
+        elif isinstance(raw, KNumber):
+            self.value = raw.value != 0
+            self.raw = raw.raw
+        else:
+            raise InvalidBooleanException(raw)
+        self.raw = raw
+        self.type = "boolean"
+    def __repr__(self):
+        return "<bool: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "{value}".format(value=self.value)
+    def __nonzero__(self):
+        return self.value
+
+class KNumber(KPrimitive):
     def __init__(self, raw):
         self.raw = raw
         self.type = "number"
@@ -102,3 +150,15 @@ class KNumber(KExpression):
         return KNumber(str(self.value / other.value))
     def __mod__(self, other):
         return KNumber(str(self.value % other.value))
+    def __lt__(self, other):
+        return self.value < other.value
+    def __le__(self, other):
+        return self.value <= other.value
+    def __eq__(self, other):
+        return self.value == other.value
+    def __ne__(self, other):
+        return self.value != other.value
+    def __ge__(self, other):
+        return self.value >= other.value
+    def __gt__(self, other):
+        return self.value > other.value

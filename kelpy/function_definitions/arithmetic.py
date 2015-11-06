@@ -1,5 +1,3 @@
-from ..exceptions import *
-
 def add(arguments):
     result = arguments[0]
     if len(arguments) > 1:
@@ -34,3 +32,11 @@ def modulo(arguments):
         for argument in arguments[1:]:
             result %= argument
     return result
+
+FUNCTION_MAP = {
+    '+': ('Add',        add),
+    '*': ('Multiply',   multiply),
+    '-': ('Subtract',   subtract),
+    '/': ('Divide',     divide),
+    '%': ('Modulo',     modulo),
+}

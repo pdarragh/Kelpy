@@ -14,6 +14,16 @@ def parse(text):
         return KNumber(text)
     elif kexp_match("SYMBOL", text):
         return KSymbol(text)
+    elif kexp_match("BOOLEAN", text):
+        return KBoolean(text)
+    elif kexp_match("{if ANY ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return KIf(
+            text,
+            parse(parses[1]),
+            parse(parses[2]),
+            parse(parses[3])
+        )
     elif kexp_match("{FUNCTION ANY ...}", text):
         parses = kexp_to_list(text)
         f = parses[0] # Don't parse this. It won't go well.
@@ -32,6 +42,8 @@ def get_text_through_matching_brace(text):
         curly brace as the first character, returns the empty string. If no
         matching curly brace is found, raises an UnbalancedBracesException.
     """
+    if not text:
+        return ''
     if text[0] == '{':
         # Find the matching closing brace.
         count = 0
@@ -49,7 +61,7 @@ def get_text_through_matching_brace(text):
             raise UnbalancedBracesException(text)
         return text[:r_index + 1]
     else:
-        return ""
+        return ''
 
 def get_smallest_kexp_from_string(text):
     """
@@ -82,6 +94,7 @@ REPEAT = '...'
 valid_types = [
     'NUMBER',
     'SYMBOL',
+    'BOOLEAN',
     'FUNCTION',
     'ANY',
     REPEAT,
@@ -108,6 +121,8 @@ def kexp_match(symbolic_text, literal_text):
     :param literal_text: The text inputted into the parser.
     :return: Boolean value describing equality.
     """
+    if not symbolic_text or not literal_text:
+        return symbolic_text == literal_text
     # Check if the symbolic text starts with a brace..
     if symbolic_text[0] == '{':
         # If it does, convert the strings to kexps.
@@ -119,11 +134,8 @@ def kexp_match(symbolic_text, literal_text):
             return False
     else:
         # Otherwise, split them like regular strings.
-        symbols  = symbolic_text.split()
-        literals = literal_text.split()
-    # Check empty lists.
-    if not symbols or not literals:
-        return False
+        symbols  = string_to_kexp_strings(symbolic_text)
+        literals = string_to_kexp_strings(literal_text)
     # If there is only one symbol, match it directly:
     if len(symbols) == 1 and len(literals) == 1:
         return match(symbols[0], literals[0])
@@ -141,12 +153,8 @@ def kexp_match(symbolic_text, literal_text):
     repeated = False    # denotes when we've just repeated a symbol via REPEAT
     while s < len(symbols) and l < len(literals):
         # First get the current symbol and literal to make life easier.
-        try:
-            symbol  = symbols[s]
-            literal = literals[l]
-        except:
-            # One of the lists isn't long enough!
-            return False
+        symbol  = symbols[s]
+        literal = literals[l]
         # If the symbol is the repeat symbol, we need to repeat (obviously).
         if symbol == REPEAT:
             # Decrement the symbol counter and set the 'repeated' flag.
@@ -179,6 +187,23 @@ def kexp_match(symbolic_text, literal_text):
     # We made it out of the loop alive, which means it's a match! Woohoo!
     return True
 
+def string_to_kexp_strings(text):
+    """
+    Converts a raw text string into strings that could be turned into
+    KExpressions.
+
+    :param text: The raw text to be converted.
+    :return: A list of strings that can be KExpressions.
+    """
+    if not text:
+        return []
+    tokens = []
+    while text:
+        tokens.append(get_smallest_kexp_from_string(text))
+        index = len(tokens[-1])
+        text  = text[index:].strip()
+    return tokens
+
 def kexp_to_list(kexp):
     """
     Given a KExpression, converts its interior into a list of KExpressions. This
@@ -187,15 +212,10 @@ def kexp_to_list(kexp):
     :param kexp: The text of the KExpression to parse.
     :return: A list of strings that can be KExpressions.
     """
-    if kexp[0] != '{' and kexp[-1] != '}':
+    if kexp[0] != '{' or kexp[-1] != '}':
         raise ParseException("kexp_to_list: not a list: {}".format(kexp))
     kexp  = kexp[1:-1]
-    parts = []
-    while kexp:
-        parts.append(get_smallest_kexp_from_string(kexp))
-        index = len(parts[-1])
-        kexp  = kexp[index:].strip()
-    return parts
+    return string_to_kexp_strings(kexp)
 
 def match(symbol, literal):
     """
@@ -245,16 +265,19 @@ def type_match(symbol, literal):
             return True
         except ParseException:
             return False
+    elif symbol == 'BOOLEAN':
+        try:
+            KBoolean(literal)
+            return True
+        except ParseException:
+            return False
     elif symbol == 'FUNCTION':
         if literal in FUNCTION_MAP:
             return True
         else:
             return False
     elif symbol == 'ANY':
-        try:
-            KExpression(literal)
-            return True
-        except ParseException:
-            return False
+        KExpression(literal)
+        return True
     else:
         raise ImplementationException("Unhandled type match in kelpy.parser.type_match: {}".format(symbol))

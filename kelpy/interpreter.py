@@ -8,13 +8,17 @@ def interpret(kexp):
     """
     if not isinstance(kexp, KExpression):
         raise InterpretException("Not a parsed expression: {}".format(kexp))
-    if isinstance(kexp, KNumber):
-        return kexp
-    elif isinstance(kexp, KSymbol):
+    if isinstance(kexp, KSymbol):
         print("need lookup")
         return kexp
     elif isinstance(kexp, KFunctionExpression):
         return handle_function(interpret_arguments(kexp))
+    elif isinstance(kexp, KIf):
+        if KBoolean(interpret(kexp.test)):
+            return interpret(kexp.true)
+        return interpret(kexp.false)
+    elif isinstance(kexp, KPrimitive):
+        return kexp
     else:
         raise RuntimeError()
 

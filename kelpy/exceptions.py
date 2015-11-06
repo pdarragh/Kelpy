@@ -49,6 +49,11 @@ class InvalidArgumentsException(InterpretException):
         message = "Function: {}. Invalid arguments given: {}".format(function, arguments)
         super(InvalidArgumentsException, self).__init__(message)
 
+class TooFewArgumentsException(InterpretException):
+    def __init__(self, function, arguments):
+        message = "Function: {}. Too few ({}) arguments given: {}".format(function, len(arguments), arguments)
+        super(TooFewArgumentsException, self).__init__(message)
+
 ################################################################################
 # Parser Exceptions
 ####
@@ -89,6 +94,11 @@ class NoArgumentsException(ParseException):
         message = "Cannot create empty expression."
         super(NoArgumentsException, self).__init__(message, expression)
 
+class RawPrimitiveException(ParseException):
+    def __init__(self, expression=None):
+        message = "Cannot create a raw KPrimitive."
+        super(RawPrimitiveException, self).__init__(message, expression)
+
 class InvalidFunctionException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid function name given."
@@ -103,6 +113,11 @@ class InvalidSymbolException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid symbol format given."
         super(InvalidSymbolException, self).__init__(message, expression)
+
+class InvalidBooleanException(ParseException):
+    def __init__(self, expression=None):
+        message = "Invalid boolean format given."
+        super(InvalidBooleanException, self).__init__(message, expression)
 
 class InvalidExpressionTypeException(ParseException):
     def __init__(self, expression=None):
