@@ -141,12 +141,8 @@ def kexp_match(symbolic_text, literal_text):
     repeated = False    # denotes when we've just repeated a symbol via REPEAT
     while s < len(symbols) and l < len(literals):
         # First get the current symbol and literal to make life easier.
-        try:
-            symbol  = symbols[s]
-            literal = literals[l]
-        except:
-            # One of the lists isn't long enough!
-            return False
+        symbol  = symbols[s]
+        literal = literals[l]
         # If the symbol is the repeat symbol, we need to repeat (obviously).
         if symbol == REPEAT:
             # Decrement the symbol counter and set the 'repeated' flag.
@@ -251,10 +247,7 @@ def type_match(symbol, literal):
         else:
             return False
     elif symbol == 'ANY':
-        try:
-            KExpression(literal)
-            return True
-        except ParseException:
-            return False
+        KExpression(literal)
+        return True
     else:
         raise ImplementationException("Unhandled type match in kelpy.parser.type_match: {}".format(symbol))
