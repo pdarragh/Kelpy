@@ -94,6 +94,11 @@ class NoArgumentsException(ParseException):
         message = "Cannot create empty expression."
         super(NoArgumentsException, self).__init__(message, expression)
 
+class RawPrimitiveException(ParseException):
+    def __init__(self, expression=None):
+        message = "Cannot create a raw KPrimitive."
+        super(RawPrimitiveException, self).__init__(message, expression)
+
 class InvalidFunctionException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid function name given."

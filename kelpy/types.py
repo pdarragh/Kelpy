@@ -78,11 +78,15 @@ class KIf(KExpression):
         )
 
 ################################################################################
-# KExpression
+# KPrimitive
 #   - wrappers for primitives
 ####
 
-class KSymbol(KExpression):
+class KPrimitive(KExpression):
+    def __init__(self, raw):
+        raise RawPrimitiveException(raw)
+
+class KSymbol(KPrimitive):
     def __init__(self, raw):
         if not raw[0] == "'":
             raise InvalidSymbolException(raw)
@@ -93,12 +97,17 @@ class KSymbol(KExpression):
     def __str__(self):
         return "{raw}".format(raw=self.raw)
 
-class KBoolean(KExpression):
+class KBoolean(KPrimitive):
     def __init__(self, raw):
         if str(raw).lower() in ('true', '#t'):
             self.value = True
         elif str(raw).lower() in ('false', '#f'):
             self.value = False
+        elif isinstance(raw, KBoolean):
+            self.value = raw.value
+        elif isinstance(raw, KNumber):
+            self.value = raw.value != 0
+            self.raw = raw.raw
         else:
             raise InvalidBooleanException(raw)
         self.raw = raw
@@ -107,8 +116,10 @@ class KBoolean(KExpression):
         return "<bool: {raw}>".format(raw=self.raw)
     def __str__(self):
         return "{value}".format(value=self.value)
+    def __nonzero__(self):
+        return self.value
 
-class KNumber(KExpression):
+class KNumber(KPrimitive):
     def __init__(self, raw):
         self.raw = raw
         self.type = "number"
