@@ -59,6 +59,11 @@ class ParseException(KelpyException):
             message = message[:-1] + ": '{}'".format(expression)
         super(ParseException, self).__init__("Parse Error: {}".format(message))
 
+class BadRepeatTypeException(ParseException):
+    def __init__(self, expression=None):
+        message = "Attempted to use repeat type without a previous type."
+        super(BadRepeatTypeException, self).__init__(message, expression)
+
 class UnbalancedBracesException(ParseException):
     def __init__(self, expression=None):
         message = "Unbalanced Braces in parsed expression."
