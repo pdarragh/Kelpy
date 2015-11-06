@@ -128,7 +128,7 @@ def kexp_match(symbolic_text, literal_text):
     if len(symbols) == 1 and len(literals) == 1:
         return match(symbols[0], literals[0])
     # Check the literals are at least as many as the necessary symbols.
-    if not len(literals) >= necessary_symbol_count(symbols):
+    if not len(literals) >= absolute_symbol_count(symbols):
         return False
     # Check the lengths match if there is no repeat operation.
     if len(symbols) != len(literals) and not REPEAT in symbols:
