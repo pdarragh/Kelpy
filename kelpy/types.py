@@ -38,7 +38,7 @@ class KExpression(KObject):
         return "{raw}".format(raw=self.raw)
 
 ################################################################################
-# KExpression
+# KFunctionExpression
 #   - function expressions
 ####
 
@@ -54,6 +54,28 @@ class KFunctionExpression(KExpression):
         return "{type}({arguments})".format(
             type        = self.type,
             arguments   = ', '.join([str(argument) for argument in self.args]))
+
+################################################################################
+# KIf
+#   - if expression
+####
+
+class KIf(KExpression):
+    def __init__(self, raw, test, result_true, result_false):
+        self.raw    = raw
+        self.test   = test
+        self.true   = result_true
+        self.false  = result_false
+        self.type   = "KIf"
+    def __repr__(self):
+        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
+    def __str__(self):
+        return "{type}({test} ? {true} : {false})".format(
+            type    = self.type,
+            test    = self.test,
+            true    = self.true,
+            false   = self.false
+        )
 
 ################################################################################
 # KExpression

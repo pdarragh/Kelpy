@@ -14,6 +14,16 @@ def parse(text):
         return KNumber(text)
     elif kexp_match("SYMBOL", text):
         return KSymbol(text)
+    elif kexp_match("BOOLEAN", text):
+        return KBoolean(text)
+    elif kexp_match("{if ANY ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return KIf(
+            text,
+            parse(parses[1]),
+            parse(parses[2]),
+            parse(parses[3])
+        )
     elif kexp_match("{FUNCTION ANY ...}", text):
         parses = kexp_to_list(text)
         f = parses[0] # Don't parse this. It won't go well.
@@ -49,7 +59,7 @@ def get_text_through_matching_brace(text):
             raise UnbalancedBracesException(text)
         return text[:r_index + 1]
     else:
-        return ""
+        return ''
 
 def get_smallest_kexp_from_string(text):
     """
@@ -82,6 +92,7 @@ REPEAT = '...'
 valid_types = [
     'NUMBER',
     'SYMBOL',
+    'BOOLEAN',
     'FUNCTION',
     'ANY',
     REPEAT,
@@ -238,6 +249,12 @@ def type_match(symbol, literal):
     elif symbol == 'SYMBOL':
         try:
             KSymbol(literal)
+            return True
+        except ParseException:
+            return False
+    elif symbol == 'BOOLEAN':
+        try:
+            KBoolean(literal)
             return True
         except ParseException:
             return False
