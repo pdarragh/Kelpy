@@ -23,6 +23,15 @@ def parse(text):
         raise ParseException("Invalid input.")
 
 def get_text_through_matching_brace(text):
+    """
+    Given a string with an opening curly brace, this method finds the substring
+    up to the matching closing curly brace.
+
+    :param text: A raw string of text.
+    :return: The text up to the matching curly brace. If there is no opening
+        curly brace as the first character, returns the empty string. If no
+        matching curly brace is found, raises an UnbalancedBracesException.
+    """
     if text[0] == '{':
         # Find the matching closing brace.
         count = 0
@@ -78,6 +87,16 @@ valid_types = [
     REPEAT,
 ]
 
+def absolute_symbol_count(symbols):
+    """
+    Gets the number of "absolute" symbols in a list of symbols. This is just
+    the number of symbols that aren't REPEAT.
+
+    :param symbols: A list of symbols.
+    :return: The number of symbols in the list that aren't REPEAT.
+    """
+    return len([symbol for symbol in symbols if symbol != REPEAT])
+
 def kexp_match(symbolic_text, literal_text):
     """
     Compares an expression text to the specially-formatted symbolic_text to
@@ -89,31 +108,45 @@ def kexp_match(symbolic_text, literal_text):
     :param literal_text: The text inputted into the parser.
     :return: Boolean value describing equality.
     """
-    # Check if the symbolic text starts with a brace. If not, we will split it
-    # as a regular string.
-    if symbolic_text[0] != '{':
+    # Check if the symbolic text starts with a brace..
+    if symbolic_text[0] == '{':
+        # If it does, convert the strings to kexps.
+        try:
+            symbols  = kexp_to_list(symbolic_text)
+            literals = kexp_to_list(literal_text)
+        except:
+            # Apparently one of the texts did not convert too well.
+            return False
+    else:
+        # Otherwise, split them like regular strings.
         symbols  = symbolic_text.split()
         literals = literal_text.split()
-    else:
-        # Otherwise, get all the tokens out of the two strings.
-        symbols  = kexp_to_list(symbolic_text)
-        literals = kexp_to_list(literal_text)
     # Check empty lists.
     if not symbols or not literals:
         return False
     # If there is only one symbol, match it directly:
-    if len(symbols) == 1:
+    if len(symbols) == 1 and len(literals) == 1:
         return match(symbols[0], literals[0])
+    # Check the literals are at least as many as the necessary symbols.
+    if not len(literals) >= necessary_symbol_count(symbols):
+        return False
+    # Check the lengths match if there is no repeat operation.
+    if len(symbols) != len(literals) and not REPEAT in symbols:
+        return False
     # Iterate over the two lists to check for valid literals.
     # This is a more complicated loop structure, so I use an pseudo-C-style
     # method with loop counters.
-    s        = 0        # counter for symbols
-    l        = 0        # counter for literals
+    s = 0               # counter for symbols
+    l = 0               # counter for literals
     repeated = False    # denotes when we've just repeated a symbol via REPEAT
-    while l < len(literals):
+    while s < len(symbols) and l < len(literals):
         # First get the current symbol and literal to make life easier.
-        symbol  = symbols[s]
-        literal = literals[l]
+        try:
+            symbol  = symbols[s]
+            literal = literals[l]
+        except:
+            # One of the lists isn't long enough!
+            return False
         # If the symbol is the repeat symbol, we need to repeat (obviously).
         if symbol == REPEAT:
             # Decrement the symbol counter and set the 'repeated' flag.
@@ -121,7 +154,8 @@ def kexp_match(symbolic_text, literal_text):
             repeated = True
             continue
         # Recursively check if the symbol matches up with the literal.
-        if not kexp_match(symbol, literal):
+        matched = kexp_match(symbol, literal)
+        if not matched:
             # Did we just check a repeat?
             if repeated:
                 # If we just repeated, then maybe we've just finally moved beyond
@@ -137,6 +171,12 @@ def kexp_match(symbolic_text, literal_text):
         l += 1
         s += 1
         repeated = False
+    if repeated:
+        # If we were just repeating, anything will match. Ensure that we
+        # actually do the final check.
+        return type_match(symbols[-2], literals[-1])
+    if symbols[-1] != REPEAT and (s != len(symbols) or l != len(literals)):
+        return False
     # We made it out of the loop alive, which means it's a match! Woohoo!
     return True
 
@@ -167,7 +207,10 @@ def match(symbol, literal):
     :return: A boolean describing whether the expressions are equivalent.
     """
     if not literal_match(symbol, literal):
-        return type_match(symbol, literal)
+        try:
+            return type_match(symbol, literal)
+        except:
+            return False
     return True
 
 def literal_match(symbol, literal):
