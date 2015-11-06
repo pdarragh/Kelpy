@@ -14,7 +14,7 @@ def parse(text):
         return KNumber(text)
     elif kexp_match("SYMBOL", text):
         return KSymbol(text)
-    elif kexp_match("FUNCTION ANY ...", text[1:-1]):
+    elif kexp_match("{FUNCTION ANY ...}", text):
         parses = kexp_to_list(text)
         f = parses[0] # Don't parse this. It won't go well.
         args = [parse(arg) for arg in parses[1:]]
@@ -154,8 +154,7 @@ def kexp_match(symbolic_text, literal_text):
             repeated = True
             continue
         # Recursively check if the symbol matches up with the literal.
-        matched = kexp_match(symbol, literal)
-        if not matched:
+        if not kexp_match(symbol, literal):
             # Did we just check a repeat?
             if repeated:
                 # If we just repeated, then maybe we've just finally moved beyond
