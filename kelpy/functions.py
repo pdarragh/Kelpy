@@ -1,12 +1,8 @@
 from function_definitions import *
 
-FUNCTION_MAP = {
-    '+': ('Add', arithmetic.add),
-    '*': ('Multiply', arithmetic.multiply),
-    '-': ('Subtract', arithmetic.subtract),
-    '/': ('Divide', arithmetic.divide),
-    '%': ('Modulo', arithmetic.modulo)
-}
+FUNCTION_MAP = {}
+FUNCTION_MAP.update(arithmetic.FUNCTION_MAP)
+FUNCTION_MAP.update(comparison.FUNCTION_MAP)
 
 def handle_function(kfunction):
     try:

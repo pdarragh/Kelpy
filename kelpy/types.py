@@ -71,6 +71,21 @@ class KSymbol(KExpression):
     def __str__(self):
         return "{raw}".format(raw=self.raw)
 
+class KBoolean(KExpression):
+    def __init__(self, raw):
+        if str(raw).lower() in ('true', '#t'):
+            self.value = True
+        elif str(raw).lower() in ('false', '#f'):
+            self.value = False
+        else:
+            raise InvalidBooleanException(raw)
+        self.raw = raw
+        self.type = "boolean"
+    def __repr__(self):
+        return "<bool: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "{value}".format(value=self.value)
+
 class KNumber(KExpression):
     def __init__(self, raw):
         self.raw = raw
@@ -102,3 +117,15 @@ class KNumber(KExpression):
         return KNumber(str(self.value / other.value))
     def __mod__(self, other):
         return KNumber(str(self.value % other.value))
+    def __lt__(self, other):
+        return self.value < other.value
+    def __le__(self, other):
+        return self.value <= other.value
+    def __eq__(self, other):
+        return self.value == other.value
+    def __ne__(self, other):
+        return self.value != other.value
+    def __ge__(self, other):
+        return self.value >= other.value
+    def __gt__(self, other):
+        return self.value > other.value

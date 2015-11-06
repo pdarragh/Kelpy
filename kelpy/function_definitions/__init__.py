@@ -1,1 +1,2 @@
-from arithmetic import *
+import arithmetic
+import comparison
