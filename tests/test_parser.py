@@ -18,6 +18,10 @@ def test_parse_number(number):
 def test_parse_symbol(symbol):
     assert isinstance(parser.parse(symbol), KSymbol)
 
+@params('true', 'True', '#t', '#f', 'FALSE')
+def test_parse_bool(boolean):
+    assert isinstance(parser.parse(boolean), KBoolean)
+
 @params("{+ 2}", "{+ 'blah}")
 def test_parse_function(function):
     assert isinstance(parser.parse(function), KFunctionExpression)
@@ -85,6 +89,10 @@ def test_kexp_match_number(number):
 def test_kexp_match_symbol(symbol):
     assert parser.kexp_match('SYMBOL', symbol)
 
+@params('true', 'True', '#t', '#f', 'FALSE')
+def test_kexp_match_bool(boolean):
+    assert parser.kexp_match('BOOLEAN', boolean)
+
 @params(*FUNCTION_MAP)
 def test_kexp_match_function(function):
     assert parser.kexp_match('FUNCTION', function)
@@ -101,6 +109,10 @@ def test_kexp_match_number_repeat(numbers):
 def test_kexp_match_symbol_repeat(symbols):
     assert parser.kexp_match('SYMBOL ...', symbols)
 
+@params('true false #t', 'True TRUE true', '#t #f #f #t', '#f')
+def test_kexp_match_bool_repeat(booleans):
+    assert parser.kexp_match('BOOLEAN ...', booleans)
+
 @params('1 2 3', "1 'blah", "'blah", '4 5 {+ 1 2}', "{* 2 0} 'blah 3")
 def test_kexp_match_any_repeat(kexps):
     assert parser.kexp_match('ANY ...', kexps)
@@ -109,14 +121,22 @@ def test_kexp_match():
     assert parser.kexp_match('NUMBER ... SYMBOL', "1 2 3 'blah")
     assert parser.kexp_match('{FUNCTION NUMBER NUMBER}', '{+ 1 2}')
     assert parser.kexp_match('{test ANY NUMBER ...}', "{test 'blah 1 2 3}")
-    assert parser.kexp_match('SYMBOL', '')
     assert parser.kexp_match('', '')
     assert parser.kexp_match('ANY NUMBER SYMBOL ...', "{+ 1 2} 3 'blah 'something 'anotherthing")
 
 def test_kexp_match_false():
+    assert not parser.kexp_match('', 'blah')
+    assert not parser.kexp_match('SYMBOL', '')
     assert not parser.kexp_match('SYMBOL NUMBER', "'blah")
     assert not parser.kexp_match('{NUMBER SYMBOL}', "{'blah 2}")
     assert not parser.kexp_match('NUMBER ...', "1 2 'blah")
+
+################################################################################
+# string_to_kexp_strings
+####
+
+def test_string_to_kexp_strings_empty():
+    assert parser.string_to_kexp_strings('') == []
 
 ################################################################################
 # kexp_to_list
@@ -137,7 +157,7 @@ def test_kexp_to_list_exceptions(kexp):
 
 def test_match():
     assert parser.match('literal', 'literal')
-    assert parser.match('symbolic', 'literal')
+    assert not parser.match('symbolic', 'literal')
 
 ################################################################################
 # literal_match
@@ -166,6 +186,14 @@ def test_type_match_symbol(symbol):
 @params('1', '+', 'blah')
 def test_type_match_symbol_false(nonsymbol):
     assert not parser.type_match('SYMBOL', nonsymbol)
+
+@params('true', 'True', '#t', '#f', 'FALSE')
+def test_type_match_bool(boolean):
+    assert parser.type_match('BOOLEAN', boolean)
+
+@params('1', "'blah", '#g')
+def test_type_match_bool_false(nonboolean):
+    assert not parser.type_match('BOOLEAN', nonboolean)
 
 @params(*FUNCTION_MAP)
 def test_type_match_function(function):
