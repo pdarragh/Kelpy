@@ -13,9 +13,9 @@ def print_welcome():
     """
     print(
         "Kelpy {version}\n"
-        "Written by Pierce Darragh, 2015\n"
-        "Welcome to Kelpy, the Python Kelp interpreter!\n"
-        ).format(version=kelpy.__version__)
+        "Written by Pierce Darragh, (c) 2015\n"
+        "Welcome to Kelpy, the Python Kelpy interpreter!\n"
+    ).format(version=kelpy.__version__)
 
 @atexit.register
 def goodbye():
