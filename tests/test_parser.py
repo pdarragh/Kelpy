@@ -26,6 +26,18 @@ def test_parse_bool(boolean):
 def test_parse_function(function):
     assert isinstance(parser.parse(function), KFunctionExpression)
 
+@params('empty', '{list}')
+def test_parse_empty_list(text):
+    assert parser.parse(text) == KList()
+
+@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}")
+def test_parse_list(text):
+    assert isinstance(parser.parse(text), KList)
+
+@params('{if 0 1 2}')
+def test_parse_if(text):
+    assert isinstance(parser.parse(text), KIf)
+
 @params('blah blah blah')
 def test_parse_parseexception(text):
     helper.assertRaises(ParseException, parser.parse, text)
