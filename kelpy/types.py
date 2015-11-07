@@ -96,6 +96,8 @@ class KSymbol(KPrimitive):
         return "<sym: {raw}>".format(raw=self.raw)
     def __str__(self):
         return "{raw}".format(raw=self.raw)
+    def __eq__(self, other):
+        return self.raw == other.raw
 
 class KBoolean(KPrimitive):
     def __init__(self, raw):
@@ -103,11 +105,8 @@ class KBoolean(KPrimitive):
             self.value = True
         elif str(raw).lower() in ('false', '#f'):
             self.value = False
-        elif isinstance(raw, KBoolean):
-            self.value = raw.value
-        elif isinstance(raw, KNumber):
-            self.value = raw.value != 0
-            self.raw = raw.raw
+        elif isinstance(raw, KExpression):
+            self.value = bool(raw)
         else:
             raise InvalidBooleanException(raw)
         self.raw = raw
@@ -118,6 +117,8 @@ class KBoolean(KPrimitive):
         return "{value}".format(value=self.value)
     def __nonzero__(self):
         return self.value
+    def __eq__(self, other):
+        return self.value == other.value
 
 class KNumber(KPrimitive):
     def __init__(self, raw):
@@ -157,7 +158,7 @@ class KNumber(KPrimitive):
     def __eq__(self, other):
         return self.value == other.value
     def __ne__(self, other):
-        return self.value != other.value
+        not self.__eq__(other)
     def __ge__(self, other):
         return self.value >= other.value
     def __gt__(self, other):
@@ -170,44 +171,6 @@ class KNumber(KPrimitive):
 #   - slightly more advanced primitive with its own methods
 #   - handles lists of expressions and such
 ####
-
-class KList(KPrimitive):
-    def __init__(self, *kexps):
-        if len(kexps) == 0:
-            self.raw = '()'
-            kexps = []
-        elif len(kexps) == 1:
-            if isinstance(kexps[0], list):
-                kexps = kexps[0]
-            else:
-                kexps = [kexps[0]]
-        else:
-            kexps = [kexp for kexp in kexps]
-        for kexp in kexps:
-            if not isinstance(kexp, KExpression):
-                raise InvalidListException("({})".format(', '.join(kexps)))
-        self.kexps = kexps
-        self.raw = "({})".format(', '.join([kexp.raw for kexp in kexps]))
-    def __repr__(self):
-        return "<list: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return "{raw}".format(raw)
-    def __nonzero__(self):
-        return len(self.kexps) != 0
-    def __add__(self, other):
-        return KList(self.kexps + other.kexps)
-    @property
-    def first(self):
-        try:
-            return self.kexps[0]
-        except IndexError:
-            raise BadListIndexException('0')
-    @property
-    def rest(self):
-        try:
-            return KList(self.kexps[1:])
-        except IndexError:
-            raise BadListIndexException
 
 def first(klist):
     if not isinstance(klist, KList):
@@ -227,7 +190,60 @@ def cons(*klists):
         if not isinstance(klist, KList):
             if isinstance(klist, KExpression):
                 result += KList(klist)
+                continue
             else:
                 raise InvalidConsException(klist)
         result += klist
     return result
+
+def empty(klist):
+    return len(klist.kexps) == 0
+
+class KList(KPrimitive):
+    def __init__(self, *kexps):
+        if len(kexps) == 0:
+            self.raw = '()'
+            kexps = []
+        elif len(kexps) == 1:
+            if isinstance(kexps[0], list):
+                kexps = kexps[0]
+            else:
+                kexps = [kexps[0]]
+        else:
+            kexps = [kexp for kexp in kexps]
+        for kexp in kexps:
+            if not isinstance(kexp, KExpression):
+                raise InvalidListException("({})".format(', '.join(kexps)))
+        self.kexps = kexps
+        self.type = "list"
+        self.raw = "{}".format(', '.join([kexp.raw for kexp in kexps]))
+    def __repr__(self):
+        return "<list: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "KList({raw})".format(raw=self.raw)
+    def __nonzero__(self):
+        return len(self.kexps) != 0
+    def __add__(self, other):
+        return KList(self.kexps + other.kexps)
+    def __eq__(self, other):
+        if (empty(self) and not empty(other)) or (not empty(self) and empty(other)):
+            return False
+        if empty(self) and empty(other):
+            return True
+        if first(self) != first(other):
+            return False
+        return rest(self) == rest(other)
+    def __ne__(self, other):
+        not self.__eq__(other)
+    @property
+    def first(self):
+        try:
+            return self.kexps[0]
+        except IndexError:
+            raise BadListIndexException('0')
+    @property
+    def rest(self):
+        try:
+            return KList(self.kexps[1:])
+        except IndexError:
+            raise BadListIndexException

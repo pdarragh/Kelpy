@@ -16,6 +16,13 @@ def parse(text):
         return KSymbol(text)
     elif kexp_match("BOOLEAN", text):
         return KBoolean(text)
+    elif kexp_match("empty", text):
+        return KList()
+    elif kexp_match("{list}", text):
+        return KList()
+    elif kexp_match("{list ANY ...}", text):
+        parses = kexp_to_list(text)
+        return KList([parse(part) for part in parses[1:]])
     elif kexp_match("{if ANY ANY ANY}", text):
         parses = kexp_to_list(text)
         return KIf(
