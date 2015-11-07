@@ -121,7 +121,7 @@ class KBoolean(KPrimitive):
 
 class KNumber(KPrimitive):
     def __init__(self, raw):
-        self.raw = raw
+        self.raw = str(raw)
         self.type = "number"
         integer     = re.compile(r"^-?\d+$")
         floating_nd = re.compile(r"^-?\d+.\d*$")
@@ -162,3 +162,72 @@ class KNumber(KPrimitive):
         return self.value >= other.value
     def __gt__(self, other):
         return self.value > other.value
+    def __nonzero__(self):
+        return self.value != 0
+
+################################################################################
+# KList
+#   - slightly more advanced primitive with its own methods
+#   - handles lists of expressions and such
+####
+
+class KList(KPrimitive):
+    def __init__(self, *kexps):
+        if len(kexps) == 0:
+            self.raw = '()'
+            kexps = []
+        elif len(kexps) == 1:
+            if isinstance(kexps[0], list):
+                kexps = kexps[0]
+            else:
+                kexps = [kexps[0]]
+        else:
+            kexps = [kexp for kexp in kexps]
+        for kexp in kexps:
+            if not isinstance(kexp, KExpression):
+                raise InvalidListException("({})".format(', '.join(kexps)))
+        self.kexps = kexps
+        self.raw = "({})".format(', '.join([kexp.raw for kexp in kexps]))
+    def __repr__(self):
+        return "<list: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "{raw}".format(raw)
+    def __nonzero__(self):
+        return len(self.kexps) != 0
+    def __add__(self, other):
+        return KList(self.kexps + other.kexps)
+    @property
+    def first(self):
+        try:
+            return self.kexps[0]
+        except IndexError:
+            raise BadListIndexException('0')
+    @property
+    def rest(self):
+        try:
+            return KList(self.kexps[1:])
+        except IndexError:
+            raise BadListIndexException
+
+def first(klist):
+    if not isinstance(klist, KList):
+        raise InvalidFirstException(klist)
+    return klist.first
+
+def rest(klist):
+    if not isinstance(klist, KList):
+        raise InvalidRestException(klist)
+    return klist.rest
+
+def cons(*klists):
+    result = KList()
+    if len(klists) == 0:
+        return result
+    for klist in klists:
+        if not isinstance(klist, KList):
+            if isinstance(klist, KExpression):
+                result += KList(klist)
+            else:
+                raise InvalidConsException(klist)
+        result += klist
+    return result
