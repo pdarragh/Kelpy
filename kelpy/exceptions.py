@@ -119,10 +119,15 @@ class InvalidRestException(ParseException):
         message = "Could not get 'rest' from expression."
         super(InvalidRestException, self).__init__(message, expression)
 
-class InvalidConsException(ParseException):
+class InvalidPrependException(ParseException):
     def __init__(self, expression=None):
-        message = "Could not produce 'cons' from expressions."
-        super(InvalidConsException, self).__init__(message, expression)
+        message = "Could not prepend value to list."
+        super(InvalidPrependException, self).__init__(message, expression)
+
+class InvalidAppendException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not append value to list."
+        super(InvalidAppendException, self).__init__(message, expression)
 
 class InvalidFunctionException(ParseException):
     def __init__(self, expression=None):

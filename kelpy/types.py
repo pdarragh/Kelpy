@@ -182,22 +182,19 @@ def rest(klist):
         raise InvalidRestException(klist)
     return klist.rest
 
-def cons(*klists):
-    result = KList()
-    if len(klists) == 0:
-        return result
-    for klist in klists:
-        if not isinstance(klist, KList):
-            if isinstance(klist, KExpression):
-                result += KList(klist)
-                continue
-            else:
-                raise InvalidConsException(klist)
-        result += klist
-    return result
+def prepend(item, klist):
+    if not isinstance(item, KExpression):
+        raise InvalidPrependException(item)
+    if not isinstance(klist, KList):
+        raise InvalidPrependException(klist)
+    return KList(item) + klist
 
-def empty(klist):
-    return len(klist.kexps) == 0
+def append(item, klist):
+    if not isinstance(item, KExpression):
+        raise InvalidAppendException(item)
+    if not isinstance(klist, KList):
+        raise InvalidAppendException(klist)
+    return klist + KList(item)
 
 class KList(KPrimitive):
     def __init__(self, *kexps):
@@ -216,7 +213,7 @@ class KList(KPrimitive):
                 raise InvalidListException("({})".format(', '.join(kexps)))
         self.kexps = kexps
         self.type = "list"
-        self.raw = "{}".format(', '.join([kexp.raw for kexp in kexps]))
+        self.raw = "{}".format(', '.join([str(kexp) for kexp in kexps]))
     def __repr__(self):
         return "<list: {raw}>".format(raw=self.raw)
     def __str__(self):
@@ -226,13 +223,16 @@ class KList(KPrimitive):
     def __add__(self, other):
         return KList(self.kexps + other.kexps)
     def __eq__(self, other):
-        if (empty(self) and not empty(other)) or (not empty(self) and empty(other)):
+        if not isinstance(other, KList):
             return False
-        if empty(self) and empty(other):
+        if self.empty and other.empty:
             return True
-        if first(self) != first(other):
+        if ((self.empty and not other.empty) or
+            (not self.empty and other.empty)):
             return False
-        return rest(self) == rest(other)
+        if self.first != other.first:
+            return False
+        return self.rest == other.rest
     def __ne__(self, other):
         not self.__eq__(other)
     @property
@@ -247,3 +247,6 @@ class KList(KPrimitive):
             return KList(self.kexps[1:])
         except IndexError:
             raise BadListIndexException
+    @property
+    def empty(self):
+        return len(self.kexps) == 0

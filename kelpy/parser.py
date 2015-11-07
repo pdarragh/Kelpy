@@ -23,6 +23,30 @@ def parse(text):
     elif kexp_match("{list ANY ...}", text):
         parses = kexp_to_list(text)
         return KList([parse(part) for part in parses[1:]])
+    elif kexp_match("{empty? ANY}", text):
+        parses = kexp_to_list(text)
+        return KBoolean(parse(parses[1]) == KList())
+    elif kexp_match("{first ANY}", text):
+        parses = kexp_to_list(text)
+        return first(parse(parses[1]))
+    elif kexp_match("{second ANY}", text):
+        parses = kexp_to_list(text)
+        return first(rest(parse(parses[1])))
+    elif kexp_match("{rest ANY}", text):
+        parses = kexp_to_list(text)
+        return rest(parse(parses[1]))
+    elif kexp_match("{prepend ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return prepend(
+            parse(parses[1]),
+            parse(parses[2])
+        )
+    elif kexp_match("{append ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return append(
+            parse(parses[1]),
+            parse(parses[2])
+        )
     elif kexp_match("{if ANY ANY ANY}", text):
         parses = kexp_to_list(text)
         return KIf(
@@ -287,4 +311,6 @@ def type_match(symbol, literal):
         KExpression(literal)
         return True
     else:
-        raise ImplementationException("Unhandled type match in kelpy.parser.type_match: {}".format(symbol))
+        raise ImplementationException(
+            "Unhandled type match in kelpy.parser.type_match: {}".format(symbol)
+        ) # pragma: no cover
