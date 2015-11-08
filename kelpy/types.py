@@ -10,25 +10,11 @@ from exceptions import *
 from functions import FUNCTION_MAP
 
 ################################################################################
-# KObject
-#   - in case there's ever more than just KExpression, here's the top-top-level
-####
-
-class KObject(object):
-    def __init__(self, *args):
-        self.raw = str(args)
-        self.type = "KObject"
-    def __repr__(self):
-        return "<kobj: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return self.raw
-
-################################################################################
 # KExpression
 #   - top-level class from which the others inherit
 ####
 
-class KExpression(KObject):
+class KExpression(object):
     def __init__(self, raw):
         self.raw = raw
         self.type = "kexp"
@@ -315,7 +301,7 @@ class KLet(KExpression):
         self.name = name
         self.value = value
         self.body = body
-        self.type = "KType"
+        self.type = "KLet"
     def __repr__(self):
         return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
     def __str__(self):
