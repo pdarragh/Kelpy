@@ -99,6 +99,41 @@ class RawPrimitiveException(ParseException):
         message = "Cannot create a raw KPrimitive."
         super(RawPrimitiveException, self).__init__(message, expression)
 
+class InvalidListException(ParseException):
+    def __init__(self, expression=None):
+        message = "Invalid list creation."
+        super(InvalidListException, self).__init__(message, expression)
+
+class BadListIndexException(ParseException):
+    def __init__(self, expression=None):
+        message = "Cannot access index of list."
+        super(BadListIndexException, self).__init__(message, expression)
+
+class InvalidFirstException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not get 'first' from expression."
+        super(InvalidFirstException, self).__init__(message, expression)
+
+class InvalidRestException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not get 'rest' from expression."
+        super(InvalidRestException, self).__init__(message, expression)
+
+class InvalidPrependException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not prepend value to list."
+        super(InvalidPrependException, self).__init__(message, expression)
+
+class InvalidAppendException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not append value to list."
+        super(InvalidAppendException, self).__init__(message, expression)
+
+class BadLookupException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not find symbol in environment."
+        super(BadLookupException, self).__init__(message, expression)
+
 class InvalidFunctionException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid function name given."

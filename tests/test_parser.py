@@ -26,6 +26,30 @@ def test_parse_bool(boolean):
 def test_parse_function(function):
     assert isinstance(parser.parse(function), KFunctionExpression)
 
+@params('empty', '{list}')
+def test_parse_empty_list(text):
+    assert parser.parse(text) == KList()
+    assert parser.parse('{{empty? {}}}'.format(text)) == KBoolean(True)
+
+@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}")
+def test_parse_list(text):
+    assert isinstance(parser.parse(text), KList)
+
+def test_parse_list_other():
+    assert parser.parse('{first {list 1 2 3}}') == KNumber(1)
+    assert parser.parse('{second {list 1 2 3}}') == KNumber(2)
+    assert parser.parse('{rest {list 1 2 3}}') == KList(KNumber(2), KNumber(3))
+    assert parser.parse('{prepend 1 {list 2 3}}') == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{append 3 {list 1 2}}') == KList(KNumber(1), KNumber(2), KNumber(3))
+
+@params('{if 0 1 2}')
+def test_parse_if(text):
+    assert isinstance(parser.parse(text), KIf)
+
+@params("{let {'x 3} 0}")
+def test_parse_let(text):
+    assert isinstance(parser.parse(text), KLet)
+
 @params('blah blah blah')
 def test_parse_parseexception(text):
     helper.assertRaises(ParseException, parser.parse, text)

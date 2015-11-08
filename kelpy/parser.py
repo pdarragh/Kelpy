@@ -16,6 +16,37 @@ def parse(text):
         return KSymbol(text)
     elif kexp_match("BOOLEAN", text):
         return KBoolean(text)
+    elif kexp_match("empty", text):
+        return KList()
+    elif kexp_match("{list}", text):
+        return KList()
+    elif kexp_match("{list ANY ...}", text):
+        parses = kexp_to_list(text)
+        return KList([parse(part) for part in parses[1:]])
+    elif kexp_match("{empty? ANY}", text):
+        parses = kexp_to_list(text)
+        return KBoolean(parse(parses[1]) == KList())
+    elif kexp_match("{first ANY}", text):
+        parses = kexp_to_list(text)
+        return first(parse(parses[1]))
+    elif kexp_match("{second ANY}", text):
+        parses = kexp_to_list(text)
+        return first(rest(parse(parses[1])))
+    elif kexp_match("{rest ANY}", text):
+        parses = kexp_to_list(text)
+        return rest(parse(parses[1]))
+    elif kexp_match("{prepend ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return prepend(
+            parse(parses[1]),
+            parse(parses[2])
+        )
+    elif kexp_match("{append ANY ANY}", text):
+        parses = kexp_to_list(text)
+        return append(
+            parse(parses[1]),
+            parse(parses[2])
+        )
     elif kexp_match("{if ANY ANY ANY}", text):
         parses = kexp_to_list(text)
         return KIf(
@@ -23,6 +54,15 @@ def parse(text):
             parse(parses[1]),
             parse(parses[2]),
             parse(parses[3])
+        )
+    elif kexp_match("{let {SYMBOL ANY} ANY}", text):
+        parses = kexp_to_list(text)
+        interior = kexp_to_list(parses[1])
+        return KLet(
+            text,
+            parse(interior[0]),
+            parse(interior[1]),
+            parse(parses[2])
         )
     elif kexp_match("{FUNCTION ANY ...}", text):
         parses = kexp_to_list(text)
@@ -280,4 +320,6 @@ def type_match(symbol, literal):
         KExpression(literal)
         return True
     else:
-        raise ImplementationException("Unhandled type match in kelpy.parser.type_match: {}".format(symbol))
+        raise ImplementationException(
+            "Unhandled type match in kelpy.parser.type_match: {}".format(symbol)
+        ) # pragma: no cover

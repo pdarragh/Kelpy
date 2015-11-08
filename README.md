@@ -66,40 +66,34 @@ If I had it completely my way, everything in this project would be purely functi
 
 In particular, Racket provides for a unified `number` type (which is just magical, to be honest) and what is called an `s-expression`.
 
-### KObject
+### Note on the Syntax
 
-| Attribute | Value                                                         |
-|-----------|---------------------------------------------------------------|
-| `.raw`    | The joined string of all arguments passed to the `KObject`    |
-| `.type`   | `KObject`                                                     |
+With each usable type of object I've included the valid syntax to use the object in Kelpy. All `KExpression`s are created from a combination of literals and primitives. The literals change object to object (e.g. `{let ...` is used for the `KLet`), but there are only a few primitives (and they have pretty intuitive names, I'd say).
 
-**Representation**: `<kobj: {raw}>`
+| Syntax    | Primitive                                             |
+|-----------|-------------------------------------------------------|
+| `NUMBER`  | `KNumber`                                             |
+| `SYMBOL`  | `KSymbol`                                             |
+| `BOOLEAN` | `KBoolean`                                            |
+| `ANY`     | `KExpression`                                         |
+| `...`     | Repeats previous syntactic element 0 or more times.   |
 
-`KObject` is the inherited type for all parsed objects. It doesn't really do anything, so it may be removed in the future if I don't find a use for it.
-
-#### KExpression
+### KExpression
 
 | Attribute | Value                                                         |
 |-----------|---------------------------------------------------------------|
 | `.raw`    | The raw value of whatever was put in the `KExpression`        |
 | `.type`   | `kexp`                                                        |
 
-**Representation**: `<expr: {raw}>`
+**Syntax**: The `KExpression` cannot be created directly.
 
 The `KExpression` is the simplest parsed object. Absolutely anything can be a `KExpression`; it simply takes a single raw parameter and stores that within itself.
 
-#### KFunctionExpression
+### KPrimitive
 
-| Attribute | Value                                                         |
-|-----------|---------------------------------------------------------------|
-| `.raw`    | The raw value of whatever was put in the `KFunctionExpression`|
-| `.type`   | `KF{Function}`, where `Function` is the name of the function. |
-| `.function` | The specific function given.                                |
-| `.args`   | A tuple of the arguments given to the function.               |
+The `KPrimitive` is an inherited type for the primitive types. It has no implementation on its own and cannot even be created!
 
-**Representation**: `<{type}: {raw}>`
-
-A `KFunctionExpression` is the representation of a function in KL. There are only a few acceptable `KFunctionExpression` values; if you don't use one of those, you will get a parse error. These are gone over elsewhere.
+**Syntax**: The `KExpression` cannot be created directly.
 
 #### KSymbol
 
@@ -108,9 +102,25 @@ A `KFunctionExpression` is the representation of a function in KL. There are onl
 | `.raw`    | The raw value of whatever was put in the `KSymbol`            |
 | `.type`   | `symbol`                                                      |
 
-**Representation**: `<sym: {raw}>`
+**Syntax**: `'symbol-name`, `'x`, etc.
 
 A `KSymbol` can be thought of as a variable name in many cases. A `KSymbol` must start with a single quote (`'`) to denote its status as a deliberate symbol.
+
+#### KBoolean
+
+| Attribute | Value                                                         |
+|-----------|---------------------------------------------------------------|
+| `.raw`    | The raw value of whatever was put in the `KBoolean`           |
+| `.type`   | `boolean`                                                     |
+
+**Syntax**: `#t`, `true`, `#f`, `false`, etc.
+
+A `KBoolean` is a simple boolean value implementation. There are a few ways to create one:
+
+| Value   | Input                                                           |
+|---------|-----------------------------------------------------------------|
+| `true`  | `true`, `#t`, any `KExpression` that evaluates to a non-zero value. |
+| `false` | `false`, `#f`, any `KExpression` that evalutaes to a zero value. |
 
 #### KNumber
 
@@ -119,7 +129,7 @@ A `KSymbol` can be thought of as a variable name in many cases. A `KSymbol` must
 | `.raw`    | The raw value of whatever was put in the `KNumber`            |
 | `.type`   | `number`                                                      |
 
-**Representation**: `<num: {raw}>`
+**Syntax**: `1`, `0`, `-38`, `3.28`, `-.389`, etc.
 
 `KNumber`s contain numeric values. They can be written in the KL any way a number can be written regularly, e.g.:
 
@@ -133,6 +143,63 @@ A `KSymbol` can be thought of as a variable name in many cases. A `KSymbol` must
 The `KNumber` is necessary to evaluate the value of expressions. For example, the KL expression `{+ 1 3}` uses both `1` and `3` as `KNumber`s and will pass them to the interpreter as such.
 
 `KNumbers` have most of the Python magic double-underscore arithmetic operators implemented, meaning `KNumber(1) + KNumber(4)` will yield a single `KNumber(5)`.
+
+### KFunctionExpression
+
+| Attribute | Value                                                         |
+|-----------|---------------------------------------------------------------|
+| `.raw`    | The raw value of whatever was put in the `KFunctionExpression`|
+| `.type`   | `KF{Function}`, where `Function` is the name of the function. |
+| `.function` | The specific function given.                                |
+| `.args`   | A tuple of the arguments given to the function.               |
+
+**Syntax**: The `KFunctionExpression` cannot be created directly. It is brought about by other functions.
+
+A `KFunctionExpression` is the representation of a function in KL. There are only a few acceptable `KFunctionExpression` values; if you don't use one of those, you will get a parse error. These are gone over elsewhere.
+
+### KList
+
+| Attribute | Value                                                         |
+|-----------|---------------------------------------------------------------|
+| `.raw`    | The raw value of whatever was put in the `KList`              |
+| `.type`   | `list`                                                        |
+| `.kexps`  | The list of `KExpression`s stored within.                     |
+
+**Syntax**: `{list ANY ...}`
+
+A list of `KExpressions`.
+
+#### Empty Lists
+
+You can also create empty lists.
+
+**Syntax**: `{list}`, `empty`
+
+### KIf
+
+| Attribute | Value                                                         |
+|-----------|---------------------------------------------------------------|
+| `.raw`    | The raw value of whatever was put in the `KIf`                |
+| `.type`   | `KIf`                                                         |
+| `.test`   | The `KExpression` to test for truthiness.                     |
+| `.true`   | If `.test` is true, return this `KExpression`.                |
+| `.false`  | If `.test` is false, return this `KExpression`.               |
+
+**Syntax**: `{if ANY ANY ANY}`
+
+To branch execution based on truthiness, use the `KIf`. The first `ANY` is the test expression. The second is the returned `KExpression` if the test is true, and the third is the equivalent for if the expression is false.
+
+### KLet
+
+| Attribute | Value                                                         |
+|-----------|---------------------------------------------------------------|
+| `.raw`    | The raw value of whatever was put in the `KIf`                |
+| `.type`   | `KLet`                                                        |
+| `.name`   | The "name" of the let expression (a symbol).                  |
+| `.value`  | The associated `KExpression` in the let expression.           |
+| `.body`   | The interior of the let, executed with a modified environment.|
+
+**Syntax**: `{if ANY ANY ANY}`
 
 ## The Future
 
