@@ -46,6 +46,10 @@ def test_parse_list_other():
 def test_parse_if(text):
     assert isinstance(parser.parse(text), KIf)
 
+@params("{let {'x 3} 0}")
+def test_parse_let(text):
+    assert isinstance(parser.parse(text), KLet)
+
 @params('blah blah blah')
 def test_parse_parseexception(text):
     helper.assertRaises(ParseException, parser.parse, text)

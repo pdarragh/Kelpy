@@ -56,28 +56,6 @@ class KFunctionExpression(KExpression):
             arguments   = ', '.join([str(argument) for argument in self.args]))
 
 ################################################################################
-# KIf
-#   - if expression
-####
-
-class KIf(KExpression):
-    def __init__(self, raw, test, result_true, result_false):
-        self.raw    = raw
-        self.test   = test
-        self.true   = result_true
-        self.false  = result_false
-        self.type   = "KIf"
-    def __repr__(self):
-        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
-    def __str__(self):
-        return "{type}({test} ? {true} : {false})".format(
-            type    = self.type,
-            test    = self.test,
-            true    = self.true,
-            false   = self.false
-        )
-
-################################################################################
 # KPrimitive
 #   - wrappers for primitives
 ####
@@ -196,7 +174,7 @@ def append(item, klist):
         raise InvalidAppendException(klist)
     return klist + KList(item)
 
-class KList(KPrimitive):
+class KList(KExpression):
     def __init__(self, *kexps):
         if len(kexps) == 0:
             self.raw = '()'
@@ -211,6 +189,7 @@ class KList(KPrimitive):
         for kexp in kexps:
             if not isinstance(kexp, KExpression):
                 raise InvalidListException("({})".format(', '.join(kexps)))
+        self.index = 0
         self.kexps = kexps
         self.type = "list"
         self.raw = "{}".format(', '.join([str(kexp) for kexp in kexps]))
@@ -235,6 +214,8 @@ class KList(KPrimitive):
         return self.rest == other.rest
     def __ne__(self, other):
         not self.__eq__(other)
+    def __iter__(self):
+        return iter(self.kexps)
     @property
     def first(self):
         try:
@@ -250,3 +231,96 @@ class KList(KPrimitive):
     @property
     def empty(self):
         return len(self.kexps) == 0
+
+################################################################################
+# KEnvironment
+#   - environmental abilities are handled with this
+####
+
+class KBinding(KExpression):
+    def __init__(self, symbol, kexp):
+        if not isinstance(symbol, KSymbol):
+            raise BadBindingNameException(symbol)
+        if not isinstance(kexp, KExpression):
+            raise BadBindingValueException(kexp)
+        self.symbol = symbol
+        self.kexp = kexp
+        self.type = "binding"
+        self.raw = "{} -> {}".format(symbol, kexp)
+    def __repr__(self):
+        return "<bind: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "({} -> {})".format(self.symbol, self.kexp)
+
+class KEnvironment(KExpression):
+    def __init__(self, *bindings):
+        self.bindings = KList()
+        for binding in bindings:
+            if not isinstance(binding, KBinding):
+                raise BadEnvironmentBindingException(binding)
+            self.bindings += KList(binding)
+        self.type = "environment"
+        self.raw = "({})".format(', '.join([str(binding) for binding in self.bindings]))
+    def __repr__(self):
+        return "<env: {raw}>".format(raw=self.raw)
+    def __str__(self):
+        return "{raw]".format(raw=self.raw)
+    def __add__(self, other):
+        if isinstance(other, KBinding):
+            return KEnvironment(*(self.bindings + KList(other)))
+        else:
+            return KEnvironment(*(self.bindings + other.bindings))
+    def __iter__(self):
+        return iter(self.bindings)
+
+empty_env = KEnvironment()
+
+def lookup(symbol, env):
+    if not isinstance(env, KEnvironment):
+        raise BadLookupException(symbol)
+    for binding in env:
+        if binding.symbol == symbol:
+            return binding.kexp
+
+################################################################################
+# KIf
+#   - if expression
+####
+
+class KIf(KExpression):
+    def __init__(self, raw, test, result_true, result_false):
+        self.raw    = raw
+        self.test   = test
+        self.true   = result_true
+        self.false  = result_false
+        self.type   = "KIf"
+    def __repr__(self):
+        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
+    def __str__(self):
+        return "{type}({test} ? {true} : {false})".format(
+            type    = self.type,
+            test    = self.test,
+            true    = self.true,
+            false   = self.false
+        )
+
+################################################################################
+# KLet
+#   - let things be other things
+####
+
+class KLet(KExpression):
+    def __init__(self, raw, name, value, body):
+        self.raw = raw
+        self.name = name
+        self.value = value
+        self.body = body
+        self.type = "KType"
+    def __repr__(self):
+        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
+    def __str__(self):
+        return "with ({name} -> {value}) : {body}".format(
+            name    = self.name,
+            value   = self.value,
+            body    = self.body
+        )

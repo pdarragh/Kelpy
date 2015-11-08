@@ -129,6 +129,11 @@ class InvalidAppendException(ParseException):
         message = "Could not append value to list."
         super(InvalidAppendException, self).__init__(message, expression)
 
+class BadLookupException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not find symbol in environment."
+        super(BadLookupException, self).__init__(message, expression)
+
 class InvalidFunctionException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid function name given."

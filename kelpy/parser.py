@@ -55,6 +55,15 @@ def parse(text):
             parse(parses[2]),
             parse(parses[3])
         )
+    elif kexp_match("{let {SYMBOL ANY} ANY}", text):
+        parses = kexp_to_list(text)
+        interior = kexp_to_list(parses[1])
+        return KLet(
+            text,
+            parse(interior[0]),
+            parse(interior[1]),
+            parse(parses[2])
+        )
     elif kexp_match("{FUNCTION ANY ...}", text):
         parses = kexp_to_list(text)
         f = parses[0] # Don't parse this. It won't go well.

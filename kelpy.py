@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 continue
             kexp = get_parsed_input(user_input, args.raw, args.quiet)
             if not args.parse_only:
-                result = kelpy.interpret(kexp)
+                result = kelpy.interpret(kexp, kelpy.types.empty_env)
                 print(result)
         except KeyboardInterrupt:
             break
