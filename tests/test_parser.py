@@ -154,6 +154,7 @@ def test_kexp_match_false():
     assert not parser.kexp_match('SYMBOL NUMBER', "'blah")
     assert not parser.kexp_match('{NUMBER SYMBOL}', "{'blah 2}")
     assert not parser.kexp_match('NUMBER ...', "1 2 'blah")
+    assert not parser.kexp_match('NUMBER ... SYMBOL', "1 2 3 'x 'y")
 
 ################################################################################
 # string_to_kexp_strings

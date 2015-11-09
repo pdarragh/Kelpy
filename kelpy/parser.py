@@ -221,7 +221,9 @@ def kexp_match(symbolic_text, literal_text):
     if repeated:
         # If we were just repeating, anything will match. Ensure that we
         # actually do the final check.
-        return type_match(symbols[-2], literals[-1])
+        return match(symbols[-2], literals[-1])
+    # Guarantee that if there was a repeat somewhere in the code and we exited
+    # the loop, that we actually completed iteration over both lists.
     if symbols[-1] != REPEAT and (s != len(symbols) or l != len(literals)):
         return False
     # We made it out of the loop alive, which means it's a match! Woohoo!
