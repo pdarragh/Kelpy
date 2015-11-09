@@ -31,9 +31,13 @@ def test_parse_empty_list(text):
     assert parser.parse(text) == KList()
     assert parser.parse('{{empty? {}}}'.format(text)) == KBoolean(True)
 
-@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}")
+@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}", '{list 1 -> 7}', '{list 1 => 7}')
 def test_parse_list(text):
     assert isinstance(parser.parse(text), KList)
+
+@params('{list 1.5 -> 7}', '{list 2 => -384.2}')
+def test_parse_list_exceptions(text):
+    helper.assertRaises(ParseException, parser.parse, text)
 
 def test_parse_list_other():
     assert parser.parse('{first {list 1 2 3}}') == KNumber(1)

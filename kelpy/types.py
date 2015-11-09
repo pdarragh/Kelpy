@@ -96,9 +96,11 @@ class KNumber(KPrimitive):
                 re.match(floating_wd, self.raw)):
             raise InvalidNumberException(self.raw)
         if re.match(integer, self.raw):
-            self.value = int(self.raw)
+            self.value   = int(self.raw)
+            self.integer = True
         else:
-            self.value = float(self.raw)
+            self.value   = float(self.raw)
+            self.integer = False
     def __repr__(self):
         return "<num: {raw}>".format(raw=self.raw)
     def __str__(self):

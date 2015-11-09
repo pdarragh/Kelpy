@@ -20,6 +20,22 @@ def parse(text):
         return KList()
     elif kexp_match("{list}", text):
         return KList()
+    elif kexp_match("{list NUMBER -> NUMBER}", text):
+        parses  = kexp_to_list(text)
+        low     = parse(parses[1])
+        high    = parse(parses[3])
+        if not low.integer or not high.integer:
+            raise ParseException("Bad exclusive list definition.")
+        values = [KNumber(x) for x in xrange(low.value, high.value)]
+        return KList(*values)
+    elif kexp_match("{list NUMBER => NUMBER}", text):
+        parses  = kexp_to_list(text)
+        low     = parse(parses[1])
+        high    = parse(parses[3])
+        if not low.integer or not high.integer:
+            raise ParseException("Bad inclusive list definition.")
+        values = [KNumber(x) for x in xrange(low.value, high.value + 1)]
+        return KList(*values)
     elif kexp_match("{list ANY ...}", text):
         parses = kexp_to_list(text)
         return KList([parse(part) for part in parses[1:]])
