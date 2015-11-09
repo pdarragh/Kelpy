@@ -148,6 +148,11 @@ def rest(klist):
         raise InvalidRestException(klist)
     return klist.rest
 
+def reverse(klist):
+    if not isinstance(klist, KList):
+        raise InvalidReverseException(klist)
+    return klist.reverse
+
 def prepend(item, klist):
     if not isinstance(item, KExpression):
         raise InvalidPrependException(item)
@@ -219,6 +224,9 @@ class KList(KPrimitive):
     @property
     def empty(self):
         return len(self.kexps) == 0
+    @property
+    def reverse(self):
+        return KList(*list(reversed(self.kexps)))
 
 ################################################################################
 # KEnvironment

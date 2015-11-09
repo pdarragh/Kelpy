@@ -119,6 +119,11 @@ class InvalidRestException(ParseException):
         message = "Could not get 'rest' from expression."
         super(InvalidRestException, self).__init__(message, expression)
 
+class InvalidReverseException(ParseException):
+    def __init__(self, expression=None):
+        message = "Could not get 'reverse' from expression."
+        super(InvalidReverseException, self).__init__(message, expression)
+
 class InvalidPrependException(ParseException):
     def __init__(self, expression=None):
         message = "Could not prepend value to list."

@@ -45,6 +45,7 @@ def test_parse_list_other():
     assert parser.parse('{rest {list 1 2 3}}') == KList(KNumber(2), KNumber(3))
     assert parser.parse('{prepend 1 {list 2 3}}') == KList(KNumber(1), KNumber(2), KNumber(3))
     assert parser.parse('{append 3 {list 1 2}}') == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{reverse {list 1 2 3}}') == KList(KNumber(3), KNumber(2), KNumber(1))
 
 @params('{if 0 1 2}')
 def test_parse_if(text):

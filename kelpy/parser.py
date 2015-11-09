@@ -51,6 +51,9 @@ def parse(text):
     elif kexp_match("{rest ANY}", text):
         parses = kexp_to_list(text)
         return rest(parse(parses[1]))
+    elif kexp_match("{reverse ANY}", text):
+        parses = kexp_to_list(text)
+        return reverse(parse(parses[1]))
     elif kexp_match("{prepend ANY ANY}", text):
         parses = kexp_to_list(text)
         return prepend(
