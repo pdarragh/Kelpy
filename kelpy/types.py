@@ -160,7 +160,7 @@ def append(item, klist):
         raise InvalidAppendException(klist)
     return klist + KList(item)
 
-class KList(KExpression):
+class KList(KPrimitive):
     def __init__(self, *kexps):
         if len(kexps) == 0:
             self.raw = '()'
