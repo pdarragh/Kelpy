@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/pdarragh/Kelpy.svg?branch=master)](https://travis-ci.org/pdarragh/Kelpy)
+[![Coverage Status](https://coveralls.io/repos/pdarragh/Kelpy/badge.svg?branch=development&service=github)](https://coveralls.io/github/pdarragh/Kelpy?branch=master)
+
 # Kelpy
 
 A parser and interpreter for a made-up prefix (Polish) notation language.
