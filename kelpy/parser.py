@@ -20,6 +20,22 @@ def parse(text):
         return KList()
     elif kexp_match("{list}", text):
         return KList()
+    elif kexp_match("{list NUMBER -> NUMBER}", text):
+        parses  = kexp_to_list(text)
+        low     = parse(parses[1])
+        high    = parse(parses[3])
+        if not low.integer or not high.integer:
+            raise ParseException("Bad exclusive list definition.")
+        values = [KNumber(x) for x in xrange(low.value, high.value)]
+        return KList(*values)
+    elif kexp_match("{list NUMBER => NUMBER}", text):
+        parses  = kexp_to_list(text)
+        low     = parse(parses[1])
+        high    = parse(parses[3])
+        if not low.integer or not high.integer:
+            raise ParseException("Bad inclusive list definition.")
+        values = [KNumber(x) for x in xrange(low.value, high.value + 1)]
+        return KList(*values)
     elif kexp_match("{list ANY ...}", text):
         parses = kexp_to_list(text)
         return KList([parse(part) for part in parses[1:]])
@@ -35,6 +51,9 @@ def parse(text):
     elif kexp_match("{rest ANY}", text):
         parses = kexp_to_list(text)
         return rest(parse(parses[1]))
+    elif kexp_match("{reverse ANY}", text):
+        parses = kexp_to_list(text)
+        return reverse(parse(parses[1]))
     elif kexp_match("{prepend ANY ANY}", text):
         parses = kexp_to_list(text)
         return prepend(
@@ -221,7 +240,9 @@ def kexp_match(symbolic_text, literal_text):
     if repeated:
         # If we were just repeating, anything will match. Ensure that we
         # actually do the final check.
-        return type_match(symbols[-2], literals[-1])
+        return match(symbols[-2], literals[-1])
+    # Guarantee that if there was a repeat somewhere in the code and we exited
+    # the loop, that we actually completed iteration over both lists.
     if symbols[-1] != REPEAT and (s != len(symbols) or l != len(literals)):
         return False
     # We made it out of the loop alive, which means it's a match! Woohoo!

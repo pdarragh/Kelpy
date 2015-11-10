@@ -10,7 +10,7 @@ from nose2.tools.such import helper
 # parse
 ####
 
-@params('0', '892', '-1', '.235', '-1.3589', '-.235')
+@params('0', '892', '-1', '.235', '-1.3589', '-.235', '3/4')
 def test_parse_number(number):
     assert isinstance(parser.parse(number), KNumber)
 
@@ -31,16 +31,21 @@ def test_parse_empty_list(text):
     assert parser.parse(text) == KList()
     assert parser.parse('{{empty? {}}}'.format(text)) == KBoolean(True)
 
-@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}")
+@params('{list 1}', 'empty', '{list 2 {+ 1 2 3}}', "{list 'x 'y}", '{list 1 -> 7}', '{list 1 => 7}')
 def test_parse_list(text):
     assert isinstance(parser.parse(text), KList)
 
+@params('{list 1.5 -> 7}', '{list 2 => -384.2}')
+def test_parse_list_exceptions(text):
+    helper.assertRaises(ParseException, parser.parse, text)
+
 def test_parse_list_other():
-    assert parser.parse('{first {list 1 2 3}}') == KNumber(1)
-    assert parser.parse('{second {list 1 2 3}}') == KNumber(2)
-    assert parser.parse('{rest {list 1 2 3}}') == KList(KNumber(2), KNumber(3))
-    assert parser.parse('{prepend 1 {list 2 3}}') == KList(KNumber(1), KNumber(2), KNumber(3))
-    assert parser.parse('{append 3 {list 1 2}}') == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{first {list 1 2 3}}')     == KNumber(1)
+    assert parser.parse('{second {list 1 2 3}}')    == KNumber(2)
+    assert parser.parse('{rest {list 1 2 3}}')      == KList(KNumber(2), KNumber(3))
+    assert parser.parse('{prepend 1 {list 2 3}}')   == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{append 3 {list 1 2}}')    == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{reverse {list 1 2 3}}')   == KList(KNumber(3), KNumber(2), KNumber(1))
 
 @params('{if 0 1 2}')
 def test_parse_if(text):
@@ -154,6 +159,7 @@ def test_kexp_match_false():
     assert not parser.kexp_match('SYMBOL NUMBER', "'blah")
     assert not parser.kexp_match('{NUMBER SYMBOL}', "{'blah 2}")
     assert not parser.kexp_match('NUMBER ...', "1 2 'blah")
+    assert not parser.kexp_match('NUMBER ... SYMBOL', "1 2 3 'x 'y")
 
 ################################################################################
 # string_to_kexp_strings
