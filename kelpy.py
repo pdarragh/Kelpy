@@ -15,6 +15,7 @@ def print_welcome():
         "Kelpy {version}\n"
         "Written by Pierce Darragh, (c) 2015\n"
         "Welcome to Kelpy, the Python Kelpy interpreter!\n"
+        "Type 'help' for more information on how to use Kelpy.\n"
     ).format(version=kelpy.__version__)
 
 @atexit.register

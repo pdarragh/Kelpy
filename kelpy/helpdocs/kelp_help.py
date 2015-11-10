@@ -1,7 +1,7 @@
 import meta
 import primitives
-# import concepts
-# import forms
+import concepts
+import forms
 
 from ..__init__ import __version__ as version
 
@@ -13,15 +13,15 @@ ABOUT = (
 
 TOPICS_LIST = {
     'getting started'   : (0, meta.getting_started),
-    'numbers'           : (1, "primitives.numbers"),
-    'symbols'           : (1, "primitives.symbols"),
-    'booleans'          : (1, "primitives.booleans"),
-    'lists'             : (1, "primitives.lists"),
-    'functions'         : (2, "concepts.functions"),
-    'math'              : (2, "concepts.math"),
-    'comparison'        : (2, "concepts.comparison"),
-    'if'                : (3, "forms.if_form"),
-    'let'               : (3, "forms.let"),
+    'numbers'           : (1, primitives.numbers),
+    'symbols'           : (1, primitives.symbols),
+    'booleans'          : (1, primitives.booleans),
+    'lists'             : (1, primitives.lists),
+    'functions'         : (2, concepts.functions),
+    'math'              : (2, concepts.math),
+    'comparison'        : (2, concepts.comparison),
+    'if'                : (3, forms.if_form),
+    'let'               : (3, forms.let),
 }
 
 TOPICS = (
@@ -55,4 +55,4 @@ def specific_help(topic):
     if not topic in TOPICS_LIST:
         print("Invalid topic selected.")
         return
-    print(TOPICS_LIST[topic][1] + '\n')
+    print(TOPICS_LIST[topic][1])
