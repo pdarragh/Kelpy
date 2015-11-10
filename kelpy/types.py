@@ -135,7 +135,7 @@ class KNumber(KPrimitive):
     def __eq__(self, other):
         return self.value == other.value
     def __ne__(self, other):
-        not self.__eq__(other)
+        return not self.__eq__(other)
     def __ge__(self, other):
         return self.value >= other.value
     def __gt__(self, other):
@@ -217,7 +217,7 @@ class KList(KPrimitive):
             return False
         return self.rest == other.rest
     def __ne__(self, other):
-        not self.__eq__(other)
+        return not self.__eq__(other)
     def __iter__(self):
         return iter(self.kexps)
     @property

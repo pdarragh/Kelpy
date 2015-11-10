@@ -24,7 +24,7 @@ def interpret(kexp, env):
     elif isinstance(kexp, KPrimitive):
         return kexp
     else:
-        raise RuntimeError()
+        raise RuntimeError() # pragma: no cover
 
 def interpret_arguments(kfunction, env):
     arguments = kfunction.args
