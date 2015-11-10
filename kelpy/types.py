@@ -89,15 +89,26 @@ class KNumber(KPrimitive):
         self.raw = str(raw)
         self.type = "number"
         integer     = re.compile(r"^-?\d+$")
+        fraction    = re.compile(r"^-?\d+/\d+$")
         floating_nd = re.compile(r"^-?\d+.\d*$")
         floating_wd = re.compile(r"^-?\d*.\d+$")
         if not (re.match(integer, self.raw) or
+                re.match(fraction, self.raw) or
                 re.match(floating_nd, self.raw) or
                 re.match(floating_wd, self.raw)):
             raise InvalidNumberException(self.raw)
         if re.match(integer, self.raw):
             self.value   = int(self.raw)
             self.integer = True
+        elif re.match(fraction, self.raw):
+            numerator    = self.raw[:self.raw.find('/')]
+            denominator  = self.raw[self.raw.find('/') + 1:]
+            self.value   = float(numerator) / float(denominator)
+            if self.value == int(self.value):
+                self.value   = int(self.value)
+                self.integer = True
+            else:
+                self.integer = False
         else:
             self.value   = float(self.raw)
             self.integer = False

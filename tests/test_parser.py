@@ -10,7 +10,7 @@ from nose2.tools.such import helper
 # parse
 ####
 
-@params('0', '892', '-1', '.235', '-1.3589', '-.235')
+@params('0', '892', '-1', '.235', '-1.3589', '-.235', '3/4')
 def test_parse_number(number):
     assert isinstance(parser.parse(number), KNumber)
 
@@ -40,12 +40,12 @@ def test_parse_list_exceptions(text):
     helper.assertRaises(ParseException, parser.parse, text)
 
 def test_parse_list_other():
-    assert parser.parse('{first {list 1 2 3}}') == KNumber(1)
-    assert parser.parse('{second {list 1 2 3}}') == KNumber(2)
-    assert parser.parse('{rest {list 1 2 3}}') == KList(KNumber(2), KNumber(3))
-    assert parser.parse('{prepend 1 {list 2 3}}') == KList(KNumber(1), KNumber(2), KNumber(3))
-    assert parser.parse('{append 3 {list 1 2}}') == KList(KNumber(1), KNumber(2), KNumber(3))
-    assert parser.parse('{reverse {list 1 2 3}}') == KList(KNumber(3), KNumber(2), KNumber(1))
+    assert parser.parse('{first {list 1 2 3}}')     == KNumber(1)
+    assert parser.parse('{second {list 1 2 3}}')    == KNumber(2)
+    assert parser.parse('{rest {list 1 2 3}}')      == KList(KNumber(2), KNumber(3))
+    assert parser.parse('{prepend 1 {list 2 3}}')   == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{append 3 {list 1 2}}')    == KList(KNumber(1), KNumber(2), KNumber(3))
+    assert parser.parse('{reverse {list 1 2 3}}')   == KList(KNumber(3), KNumber(2), KNumber(1))
 
 @params('{if 0 1 2}')
 def test_parse_if(text):
