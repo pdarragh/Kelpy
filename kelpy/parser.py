@@ -7,8 +7,7 @@ def parse(text):
     text = text.strip()
     # Now ensure the braces are balanced (if there are any).
     #TODO: Replace this with an auto-indent form.
-    if text.count('{') != text.count('}'):
-        raise UnbalancedBracesException(text)
+    check_matching_braces(text)
     # Begin parsing for KExpressions.
     if kexp_match("NUMBER", text):
         return KNumber(text)
@@ -91,6 +90,56 @@ def parse(text):
     else:
         raise ParseException("Invalid input.")
 
+BRACES = {
+    '{': '}',
+    '[': ']',
+    '(': ')',
+}
+
+def check_matching_braces(text):
+    """
+    Ensures that the text has a matching number of each type of brace.
+
+    :param text: Input text to check.
+    :return: Boolean for whether the braces match in numbers.
+    """
+    for opening, closing in BRACES.iteritems():
+        if text.count(opening) != text.count(closing):
+            raise UnbalancedBracesException(text)
+
+def is_opening_brace(text):
+    """
+    Whether a text is an opening brace.
+
+    :param text: Raw string.
+    :return: Boolean for whether the text is an opening brace.
+    """
+    return text in BRACES
+
+def is_closing_brace(text):
+    """
+    Whether a text is a closing brace.
+
+    :param text: Raw string.
+    :return: Boolean for whether the text is a closing brace.
+    """
+    return text in BRACES.values()
+
+def matching_brace(brace):
+    """
+    Gets the appropriate matching brace for a given brace, regardless of whether
+    the brace is an opening or closing brace.
+
+    :param brace: An input brace.
+    :return: The matching brace.
+    """
+    for opening, closing in BRACES.iteritems():
+        if brace == opening:
+            return closing
+        if brace == closing:
+            return opening
+    return ''
+
 def get_text_through_matching_brace(text):
     """
     Given a string with an opening curly brace, this method finds the substring
@@ -103,19 +152,22 @@ def get_text_through_matching_brace(text):
     """
     if not text:
         return ''
-    if text[0] == '{':
+    if is_opening_brace(text[0]):
         # Find the matching closing brace.
         count = 0
         r_index = 0
         for i in xrange(len(text)):
             char = text[i]
-            if char == '{':
+            if is_opening_brace(char):
                 count += 1
-            elif char == '}':
+            elif is_closing_brace(char):
                 count -= 1
             if count == 0:
-                r_index = i
-                break
+                if char == matching_brace(text[0]):
+                    r_index = i
+                    break
+                else:
+                    raise UnbalancedBracesException(text)
         if r_index <= 0:
             raise UnbalancedBracesException(text)
         return text[:r_index + 1]
@@ -133,17 +185,22 @@ def get_smallest_kexp_from_string(text):
     if not text.strip():
         # Ensure that we don't throw an error if the text is blank.
         return ""
-    if text[0] == "'" and text[1] == '{':
+    if text[0] == "'" and is_opening_brace(text[1]):
         # Find the shortest matching brace expression starting after the
         # quote mark.
         return "'" + get_text_through_matching_brace(text[1:])
-    elif text[0] == '{':
+    elif is_opening_brace(text[0]):
         # Find the shortest matching brace expression.
         return get_text_through_matching_brace(text)
     else:
-        # In case the expression is attached to a brace, remove it.
-        if text.find('}') >= 0:
-            text = text[:text.find('}')]
+        # Check all the types of braces to see if the current expression is
+        # attached to a closing brace. If it is, remove it.
+        closest = -1
+        for brace in BRACES.values():
+            if text.find(brace) >= 0 and text.find(brace) < closest:
+                closest = text.find(brace)
+        if closest >= 0:
+            text = text[:closest]
         # Just get the whole first word.
         return text.split()[0]
 
@@ -183,7 +240,7 @@ def kexp_match(symbolic_text, literal_text):
     if not symbolic_text or not literal_text:
         return symbolic_text == literal_text
     # Check if the symbolic text starts with a brace..
-    if symbolic_text[0] == '{':
+    if is_opening_brace(symbolic_text[0]):
         # If it does, convert the strings to kexps.
         try:
             symbols  = kexp_to_list(symbolic_text)
@@ -273,7 +330,7 @@ def kexp_to_list(kexp):
     :param kexp: The text of the KExpression to parse.
     :return: A list of strings that can be KExpressions.
     """
-    if kexp[0] != '{' or kexp[-1] != '}':
+    if not is_opening_brace(kexp[0]) or not is_closing_brace(kexp[-1]):
         raise ParseException("kexp_to_list: not a list: {}".format(kexp))
     kexp  = kexp[1:-1]
     return string_to_kexp_strings(kexp)
