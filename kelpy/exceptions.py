@@ -54,6 +54,14 @@ class TooFewArgumentsException(InterpretException):
         message = "Function: {}. Too few ({}) arguments given: {}".format(function, len(arguments), arguments)
         super(TooFewArgumentsException, self).__init__(message)
 
+class UninterpretedSymbolException(InterpretException):
+    def __init__(self, kfunction, env):
+        message = "Symbol without binding in function ({function}) and environment ({env}).".format(
+            function = kfunction,
+            env      = env
+        )
+        super(UninterpretedSymbolException, self).__init__(message)
+
 ################################################################################
 # Parser Exceptions
 ####

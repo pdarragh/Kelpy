@@ -38,6 +38,8 @@ def interpret_symbol(ksymbol, env):
     return value if value is not None else ksymbol
 
 def interpret_function(kfunction, env):
+    if any([type(arg) == KSymbol for arg in kfunction.args]):
+        raise UninterpretedSymbolException(kfunction, env)
     return handle_function(kfunction.symbol, [interpret(arg, env) for arg in kfunction.args])
 
 def interpret_if(kif, env):

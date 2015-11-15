@@ -300,8 +300,6 @@ class KBinding(KExpression):
         self.kexp = kexp
         self.type = "binding"
         self.raw = "{} -> {}".format(symbol, kexp)
-    def __repr__(self):
-        return "<bind: {raw}>".format(raw=self.raw)
     def __str__(self):
         return "({} -> {})".format(self.symbol, self.kexp)
 
@@ -313,11 +311,8 @@ class KEnvironment(KExpression):
                 raise BadEnvironmentBindingException(binding)
             self.bindings += KList(binding)
         self.type = "environment"
-        self.raw = "({})".format(', '.join([str(binding) for binding in self.bindings]))
-    def __repr__(self):
-        return "<env: {raw}>".format(raw=self.raw)
     def __str__(self):
-        return "{raw]".format(raw=self.raw)
+        return "{}".format(', '.join([str(binding) for binding in self.bindings]))
     def __add__(self, other):
         if isinstance(other, KBinding):
             return KEnvironment(*(self.bindings + KList(other)))
@@ -365,8 +360,6 @@ class KLet(KExpression):
         self.value  = value
         self.body   = body
         self.type   = "KLet"
-    def __repr__(self):
-        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
     def __str__(self):
         return "with ({name} -> {value}) : {body}".format(
             name    = self.name,
