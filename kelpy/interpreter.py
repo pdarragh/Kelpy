@@ -32,7 +32,10 @@ def interpret(kexp, env):
     }.get(type(kexp), interpret_default)(kexp,env)
 
 def interpret_symbol(ksymbol, env):
-    return lookup(ksymbol, env)
+    value = lookup(ksymbol, env)
+    # Explicit test against 'None' in case strings are implemented in the
+    # future.
+    return value if value is not None else ksymbol
 
 def interpret_function(kfunction, env):
     return handle_function(kfunction.symbol, [interpret(arg, env) for arg in kfunction.args])
