@@ -17,15 +17,15 @@ def test_interpret_symbol():
     assert interpreter.interpret(KSymbol("'x"), env) == KNumber(1)
 
 def test_interpret_function():
-    func = KFunctionExpression('', '+', *[KNumber(1), KNumber(2)])
+    func = KAdd(*[KNumber(1), KNumber(2)])
     assert interpreter.interpret(func, empty_env) == KNumber(3)
 
 def test_interpret_if():
-    kif_true = KIf('', KBoolean(True), KNumber(0), KNumber(1))
-    kif_false = KIf('', KBoolean(False), KNumber(0), KNumber(1))
+    kif_true = KIf(KBoolean(True), KNumber(0), KNumber(1))
+    kif_false = KIf(KBoolean(False), KNumber(0), KNumber(1))
     assert interpreter.interpret(kif_true, empty_env) == KNumber(0)
     assert interpreter.interpret(kif_false, empty_env) == KNumber(1)
 
 def test_interpret_let():
-    klet = KLet('', KSymbol("'x"), KNumber(1), KNumber(2))
+    klet = KLet(KSymbol("'x"), KNumber(1), KNumber(2))
     assert interpreter.interpret(klet, empty_env) == KNumber(2)

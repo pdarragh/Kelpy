@@ -22,7 +22,7 @@ def test_parse_symbol(symbol):
 def test_parse_bool(boolean):
     assert isinstance(parser.parse(boolean), KBoolean)
 
-@params("{+ 2}", "{+ 'blah}")
+@params("{+ 2 3}", "{+ 'blah 'x'}")
 def test_parse_function(function):
     assert isinstance(parser.parse(function), KFunctionExpression)
 
@@ -122,10 +122,6 @@ def test_kexp_match_symbol(symbol):
 def test_kexp_match_bool(boolean):
     assert parser.kexp_match('BOOLEAN', boolean)
 
-@params(*FUNCTION_MAP)
-def test_kexp_match_function(function):
-    assert parser.kexp_match('FUNCTION', function)
-
 @params('1', '+', "'blah", "{{1 2 3}}")
 def test_kexp_match_any(kexp):
     assert parser.kexp_match('ANY', kexp)
@@ -148,7 +144,7 @@ def test_kexp_match_any_repeat(kexps):
 
 def test_kexp_match():
     assert parser.kexp_match('NUMBER ... SYMBOL', "1 2 3 'blah")
-    assert parser.kexp_match('{FUNCTION NUMBER NUMBER}', '{+ 1 2}')
+    assert parser.kexp_match('{+ NUMBER NUMBER}', '{+ 1 2}')
     assert parser.kexp_match('{test ANY NUMBER ...}', "{test 'blah 1 2 3}")
     assert parser.kexp_match('', '')
     assert parser.kexp_match('ANY NUMBER SYMBOL ...', "{+ 1 2} 3 'blah 'something 'anotherthing")
@@ -224,14 +220,6 @@ def test_type_match_bool(boolean):
 @params('1', "'blah", '#g')
 def test_type_match_bool_false(nonboolean):
     assert not parser.type_match('BOOLEAN', nonboolean)
-
-@params(*FUNCTION_MAP)
-def test_type_match_function(function):
-    assert parser.type_match('FUNCTION', function)
-
-@params('blah', '1', "'blah")
-def test_type_match_function_false(nonfunction):
-    assert not parser.type_match('FUNCTION', nonfunction)
 
 @params('1', "'x", '{+ 1 2}')
 def test_type_match_any(kexp):

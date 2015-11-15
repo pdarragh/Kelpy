@@ -9,12 +9,16 @@ def parse(text):
     #TODO: Replace this with an auto-indent form.
     check_matching_braces(text)
     # Begin parsing for KExpressions.
+    ####
+    # Primitives
     if kexp_match("NUMBER", text):
         return KNumber(text)
     elif kexp_match("SYMBOL", text):
         return KSymbol(text)
     elif kexp_match("BOOLEAN", text):
         return KBoolean(text)
+    ####
+    # Lists
     elif kexp_match("empty", text):
         return KList()
     elif kexp_match("{list}", text):
@@ -65,30 +69,55 @@ def parse(text):
             parse(parses[1]),
             parse(parses[2])
         )
+    ####
+    # Functions
+    elif kexp_match("{+ ANY ANY ...}", text):
+        return KAdd(*parse_function_args(text))
+    elif kexp_match("{* ANY ANY ...}", text):
+        return KMultiply(*parse_function_args(text))
+    elif kexp_match("{- ANY ANY ...}", text):
+        return KSubtract(*parse_function_args(text))
+    elif kexp_match("{/ ANY ANY ...}", text):
+        return KDivide(*parse_function_args(text))
+    elif kexp_match("{% ANY ANY ...}", text):
+        return KModulo(*parse_function_args(text))
+    elif kexp_match("{== ANY ANY ...}", text):
+        return KEquality(*parse_function_args(text))
+    elif kexp_match("{!= ANY ANY ...}", text):
+        return KInequality(*parse_function_args(text))
+    elif kexp_match("{< ANY ANY ...}", text):
+        return KLessThan(*parse_function_args(text))
+    elif kexp_match("{> ANY ANY ...}", text):
+        return KGreaterThan(*parse_function_args(text))
+    elif kexp_match("{<= ANY ANY ...}", text):
+        return KLessThanEqual(*parse_function_args(text))
+    elif kexp_match("{>= ANY ANY ...}", text):
+        return KGreaterThanEqual(*parse_function_args(text))
+    ####
+    # Control Flow
     elif kexp_match("{if ANY ANY ANY}", text):
         parses = kexp_to_list(text)
         return KIf(
-            text,
             parse(parses[1]),
             parse(parses[2]),
             parse(parses[3])
         )
+    ####
+    # Environment
     elif kexp_match("{let {SYMBOL ANY} ANY}", text):
         parses = kexp_to_list(text)
         interior = kexp_to_list(parses[1])
         return KLet(
-            text,
             parse(interior[0]),
             parse(interior[1]),
             parse(parses[2])
         )
-    elif kexp_match("{FUNCTION ANY ...}", text):
-        parses = kexp_to_list(text)
-        f = parses[0] # Don't parse this. It won't go well.
-        args = [parse(arg) for arg in parses[1:]]
-        return KFunctionExpression(text, f, *args)
     else:
         raise ParseException("Invalid input.")
+
+def parse_function_args(text):
+    parses = kexp_to_list(text)
+    return [parse(arg) for arg in parses[1:]]
 
 BRACES = {
     '{': '}',
@@ -211,7 +240,6 @@ valid_types = [
     'NUMBER',
     'SYMBOL',
     'BOOLEAN',
-    'FUNCTION',
     'ANY',
     REPEAT,
 ]
@@ -389,13 +417,7 @@ def type_match(symbol, literal):
             return True
         except ParseException:
             return False
-    elif symbol == 'FUNCTION':
-        if literal in FUNCTION_MAP:
-            return True
-        else:
-            return False
     elif symbol == 'ANY':
-        KExpression(literal)
         return True
     else:
         raise ImplementationException(

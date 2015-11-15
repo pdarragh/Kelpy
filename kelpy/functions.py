@@ -4,8 +4,8 @@ FUNCTION_MAP = {}
 FUNCTION_MAP.update(arithmetic.FUNCTION_MAP)
 FUNCTION_MAP.update(comparison.FUNCTION_MAP)
 
-def handle_function(kfunction):
+def handle_function(function, args):
     try:
-        return FUNCTION_MAP[kfunction.function][1](kfunction.args)
+        return FUNCTION_MAP[function][1](args)
     except KeyError: # pragma: no cover
-        raise InvalidFunctionException(kfunction.function)
+        raise InvalidFunctionException(function)

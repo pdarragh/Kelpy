@@ -15,31 +15,87 @@ from functions import FUNCTION_MAP
 ####
 
 class KExpression(object):
-    def __init__(self, raw):
-        self.raw = raw
-        self.type = "kexp"
-    def __repr__(self):
-        return "<expr: {raw}>".format(raw=self.raw)
-    def __str__(self):
-        return "{raw}".format(raw=self.raw)
+    def __init__(self):
+        raise RawExpressionException()
 
 ################################################################################
 # KFunctionExpression
 #   - function expressions
 ####
 
+# class KFunctionExpression(KExpression):
+#     def __init__(self, function, *args):
+#         self.function   = function
+#         self.args       = args
+#         self.type       = "KF{}".format(FUNCTION_MAP[self.function][0])
+#     def __str__(self):
+#         return "{type}({arguments})".format(
+#             type        = self.type,
+#             arguments   = ', '.join([str(argument) for argument in self.args]))
 class KFunctionExpression(KExpression):
-    def __init__(self, raw, function, *args):
-        self.raw        = raw
-        self.function   = function
-        self.args       = args
-        self.type       = "KF{}".format(FUNCTION_MAP[self.function][0])
-    def __repr__(self):
-        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
+    def __init__(self, typename, symbol, args):
+        self.type   = typename
+        self.symbol = symbol
+        self.args   = args
     def __str__(self):
         return "{type}({arguments})".format(
             type        = self.type,
-            arguments   = ', '.join([str(argument) for argument in self.args]))
+            arguments   = (
+                '{} '.format(' ' + self.symbol if self.symbol else ',')
+            ).join([str(argument) for argument in self.args])
+        )
+
+########
+# Arithmetic
+####
+
+class KAdd(KFunctionExpression):
+    def __init__(self, *args):
+        super(KAdd, self).__init__('KAdd', '+', args)
+
+class KMultiply(KFunctionExpression):
+    def __init__(self, *args):
+        super(KMultiply, self).__init__('KMultiply', '*', args)
+
+class KSubtract(KFunctionExpression):
+    def __init__(self, *args):
+        super(KSubtract, self).__init__('KSubtract', '-', args)
+
+class KDivide(KFunctionExpression):
+    def __init__(self, *args):
+        super(KDivide, self).__init__('KDivide', '/', args)
+
+class KModulo(KFunctionExpression):
+    def __init__(self, *args):
+        super(KModulo, self).__init__('KModulo', '%', args)
+
+########
+# Comparison
+####
+
+class KEquality(KFunctionExpression):
+    def __init__(self, *args):
+        super(KEquality, self).__init__('KEquality', '==', args)
+
+class KInequality(KFunctionExpression):
+    def __init__(self, *args):
+        super(KInequality, self).__init__('KInequality', '!=', args)
+
+class KLessThan(KFunctionExpression):
+    def __init__(self, *args):
+        super(KLessThan, self).__init__('KLessThan', '<', args)
+
+class KGreaterThan(KFunctionExpression):
+    def __init__(self, *args):
+        super(KGreaterThan, self).__init__('KGreaterThan', '>', args)
+
+class KLessThanEqual(KFunctionExpression):
+    def __init__(self, *args):
+        super(KLessThanEqual, self).__init__('KLessThanEqual', '<=', args)
+
+class KGreaterThanEqual(KFunctionExpression):
+    def __init__(self, *args):
+        super(KGreaterThanEqual, self).__init__('KGreaterThanEqual', '>=', args)
 
 ################################################################################
 # KPrimitive
@@ -47,62 +103,59 @@ class KFunctionExpression(KExpression):
 ####
 
 class KPrimitive(KExpression):
-    def __init__(self, raw):
+    def __init__(self):
         raise RawPrimitiveException(raw)
 
 class KSymbol(KPrimitive):
-    def __init__(self, raw):
-        if not raw[0] == "'":
-            raise InvalidSymbolException(raw)
-        self.raw = raw
-        self.type = "symbol"
-    def __repr__(self):
-        return "<sym: {raw}>".format(raw=self.raw)
+    def __init__(self, symbol):
+        if not symbol[0] == "'":
+            raise InvalidSymbolException(symbol)
+        self.name = symbol
+        self.type  = "symbol"
     def __str__(self):
-        return "{raw}".format(raw=self.raw)
+        return "{}".format(self.name)
     def __eq__(self, other):
-        return self.raw == other.raw
+        try:
+            return self.name == other.name
+        except:
+            return False
 
 class KBoolean(KPrimitive):
-    def __init__(self, raw):
-        if str(raw).lower() in ('true', '#t'):
+    def __init__(self, boolean):
+        if str(boolean).lower() in ('true', '#t'):
             self.value = True
-        elif str(raw).lower() in ('false', '#f'):
+        elif str(boolean).lower() in ('false', '#f'):
             self.value = False
-        elif isinstance(raw, KExpression):
-            self.value = bool(raw)
+        elif isinstance(boolean, KExpression):
+            self.value = bool(boolean)
         else:
-            raise InvalidBooleanException(raw)
-        self.raw = raw
+            raise InvalidBooleanException(boolean)
         self.type = "boolean"
-    def __repr__(self):
-        return "<bool: {raw}>".format(raw=self.raw)
     def __str__(self):
-        return "{value}".format(value=self.value)
+        return "{}".format(self.value)
     def __nonzero__(self):
         return self.value
     def __eq__(self, other):
         return self.value == other.value
 
 class KNumber(KPrimitive):
-    def __init__(self, raw):
-        self.raw = str(raw)
+    def __init__(self, number):
         self.type = "number"
         integer     = re.compile(r"^-?\d+$")
         fraction    = re.compile(r"^-?\d+/\d+$")
         floating_nd = re.compile(r"^-?\d+.\d*$")
         floating_wd = re.compile(r"^-?\d*.\d+$")
-        if not (re.match(integer, self.raw) or
-                re.match(fraction, self.raw) or
-                re.match(floating_nd, self.raw) or
-                re.match(floating_wd, self.raw)):
-            raise InvalidNumberException(self.raw)
-        if re.match(integer, self.raw):
-            self.value   = int(self.raw)
+        if not (re.match(integer, str(number)) or
+                re.match(fraction, str(number)) or
+                re.match(floating_nd, str(number)) or
+                re.match(floating_wd, str(number))):
+            raise InvalidNumberException(number)
+        if re.match(integer, str(number)):
+            self.value   = int(number)
             self.integer = True
-        elif re.match(fraction, self.raw):
-            numerator    = self.raw[:self.raw.find('/')]
-            denominator  = self.raw[self.raw.find('/') + 1:]
+        elif re.match(fraction, str(number)):
+            numerator    = number[:number.find('/')]
+            denominator  = number[number.find('/') + 1:]
             self.value   = float(numerator) / float(denominator)
             if self.value == int(self.value):
                 self.value   = int(self.value)
@@ -110,10 +163,8 @@ class KNumber(KPrimitive):
             else:
                 self.integer = False
         else:
-            self.value   = float(self.raw)
+            self.value   = float(number)
             self.integer = False
-    def __repr__(self):
-        return "<num: {raw}>".format(raw=self.raw)
     def __str__(self):
         return str(self.value)
     def __add__(self, other):
@@ -181,7 +232,6 @@ def append(item, klist):
 class KList(KPrimitive):
     def __init__(self, *kexps):
         if len(kexps) == 0:
-            self.raw = '()'
             kexps = []
         elif len(kexps) == 1:
             if isinstance(kexps[0], list):
@@ -193,14 +243,10 @@ class KList(KPrimitive):
         for kexp in kexps:
             if not isinstance(kexp, KExpression):
                 raise InvalidListException("({})".format(', '.join(kexps)))
-        self.index = 0
         self.kexps = kexps
-        self.type = "list"
-        self.raw = "{}".format(', '.join([str(kexp) for kexp in kexps]))
-    def __repr__(self):
-        return "<list: {raw}>".format(raw=self.raw)
+        self.type  = "list"
     def __str__(self):
-        return "KList({raw})".format(raw=self.raw)
+        return "({})".format(', '.join([str(kexp) for kexp in self.kexps]))
     def __nonzero__(self):
         return len(self.kexps) != 0
     def __add__(self, other):
@@ -295,14 +341,11 @@ def lookup(symbol, env):
 ####
 
 class KIf(KExpression):
-    def __init__(self, raw, test, result_true, result_false):
-        self.raw    = raw
+    def __init__(self, test, result_true, result_false):
         self.test   = test
         self.true   = result_true
         self.false  = result_false
         self.type   = "KIf"
-    def __repr__(self):
-        return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
     def __str__(self):
         return "{type}({test} ? {true} : {false})".format(
             type    = self.type,
@@ -317,12 +360,11 @@ class KIf(KExpression):
 ####
 
 class KLet(KExpression):
-    def __init__(self, raw, name, value, body):
-        self.raw = raw
-        self.name = name
-        self.value = value
-        self.body = body
-        self.type = "KLet"
+    def __init__(self, name, value, body):
+        self.name   = name
+        self.value  = value
+        self.body   = body
+        self.type   = "KLet"
     def __repr__(self):
         return "<{type}: {raw}>".format(type=self.type, raw=self.raw)
     def __str__(self):

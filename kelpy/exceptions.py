@@ -64,6 +64,11 @@ class ParseException(KelpyException):
             message = message[:-1] + ": '{}'".format(expression)
         super(ParseException, self).__init__("Parse Error: {}".format(message))
 
+class RawExpressionException(ParseException):
+    def __init__(self):
+        message = "Cannot create a raw KExpression object."
+        super(RawExpressionException, self).__init__(message)
+
 class BadRepeatTypeException(ParseException):
     def __init__(self, expression=None):
         message = "Attempted to use repeat type without a previous type."

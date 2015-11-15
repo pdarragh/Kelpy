@@ -3,7 +3,6 @@
 import argparse
 import atexit
 import readline # This is used to fix the `raw_input` call.
-import sys
 
 import kelpy
 
@@ -22,7 +21,7 @@ def print_welcome():
 def goodbye():
     print("\nThank you for using Kelpy!")
 
-def get_parsed_input(user_input, show_raw=False, suppress_output=False):
+def get_parsed_input(user_input, show_raw=False, show_parse=False):
     """
     :return: input from the user
     """
@@ -31,7 +30,7 @@ def get_parsed_input(user_input, show_raw=False, suppress_output=False):
         output = repr(kexp)
     else:
         output = str(kexp)
-    if not suppress_output:
+    if show_parse:
         print("~ {}".format(output))
     return kexp
 
@@ -61,7 +60,7 @@ BUILTINS = {
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw', action='store_true')
-    parser.add_argument('-q', '--quiet', action='store_true')
+    parser.add_argument('-s', '--show-parse', action='store_true')
     parser.add_argument('-p', '--parse-only', action='store_true')
     args = parser.parse_args()
     print_welcome()
@@ -73,9 +72,10 @@ if __name__ == '__main__':
             if user_input.split()[0].lower() in BUILTINS:
                 builtin_delegate(user_input.lower())
                 continue
-            kexp = get_parsed_input(user_input, args.raw, args.quiet)
+            kexp = get_parsed_input(user_input, args.raw, args.show_parse)
             if not args.parse_only:
                 result = kelpy.interpret(kexp, kelpy.types.empty_env)
+                print('~ {}'.format(result.type))
                 print(result)
         except KeyboardInterrupt:
             break
