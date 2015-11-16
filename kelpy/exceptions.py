@@ -62,6 +62,11 @@ class UninterpretedSymbolException(InterpretException):
         )
         super(UninterpretedSymbolException, self).__init__(message)
 
+class BadApplicationException(InterpretException):
+    def __init__(self, kapp):
+        message = "Could not process application with function: {}".format(kapp)
+        super(BadApplicationException, self).__init__(message)
+
 ################################################################################
 # Parser Exceptions
 ####

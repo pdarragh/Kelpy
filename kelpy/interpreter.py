@@ -20,16 +20,18 @@ def interpret(kexp, env):
     # Some primitives don't need to be evaluated. Just return those.
     # In general, the exception is symbols (which should be looked up).
     skip_primitives = [
-        KNumber, KBoolean, KList
+        KNumber, KBoolean, KList, KClosure
     ]
     if type(kexp) in skip_primitives:
         return kexp
     # Handling expressions for everything else.
     return {
-        KSymbol     : interpret_symbol,
-        KIf         : interpret_if,
-        KLet        : interpret_let,
-    }.get(type(kexp), interpret_default)(kexp,env)
+        KSymbol         : interpret_symbol,
+        KIf             : interpret_if,
+        KLet            : interpret_let,
+        KLambda         : interpret_lambda,
+        KApplication    : interpret_application,
+    }.get(type(kexp), interpret_default)(kexp, env)
 
 def interpret_symbol(ksymbol, env):
     value = lookup(ksymbol, env)
@@ -38,8 +40,8 @@ def interpret_symbol(ksymbol, env):
     return value if value is not None else ksymbol
 
 def interpret_function(kfunction, env):
-    if any([type(arg) == KSymbol for arg in kfunction.args]):
-        raise UninterpretedSymbolException(kfunction, env)
+    # if any([type(arg) == KSymbol for arg in kfunction.args]):
+    #     raise UninterpretedSymbolException(kfunction, env)
     return handle_function(kfunction.symbol, [interpret(arg, env) for arg in kfunction.args])
 
 def interpret_if(kif, env):
@@ -54,5 +56,38 @@ def interpret_let(klet, env):
         (env + KBinding(klet.name, klet.value))
     )
 
+def interpret_lambda(klambda, env):
+    return KClosure(klambda.body, klambda.args, env)
+
+def interpret_application(kapp, env):
+    closure = interpret(kapp.function, env)
+    if not isinstance(closure, KClosure):
+        raise BadApplicationException(kapp)
+    return interpret(
+        closure.body,
+        # map(lambda binding: bind(binding[0], binding[1]), zip(closure.names, kapp.args))
+        recursive_extend_env(KList(closure.names), KList(kapp.args), env)
+    )
+
 def interpret_default(kexp, env):
     raise InterpretException("No interpreter for KExpression: {}".format(kexp))
+
+########
+# Helper functions
+def recursive_extend_env(names, args, env):
+    if names.empty:
+        if args.empty:
+            return env
+        else:
+            raise InterpretException("Bad number of arguments.")
+    else:
+        if args.empty:
+            raise InterpretException("Bad number of names.")
+        else:
+            return extend_env(
+                bind(first(names), first(args)),
+                recursive_extend_env(
+                    rest(names),
+                    rest(args),
+                    env
+                ))

@@ -17,21 +17,14 @@ from functions import FUNCTION_MAP
 class KExpression(object):
     def __init__(self):
         raise RawExpressionException()
+    def __repr__(self):
+        return str(self)
 
 ################################################################################
 # KFunctionExpression
 #   - function expressions
 ####
 
-# class KFunctionExpression(KExpression):
-#     def __init__(self, function, *args):
-#         self.function   = function
-#         self.args       = args
-#         self.type       = "KF{}".format(FUNCTION_MAP[self.function][0])
-#     def __str__(self):
-#         return "{type}({arguments})".format(
-#             type        = self.type,
-#             arguments   = ', '.join([str(argument) for argument in self.args]))
 class KFunctionExpression(KExpression):
     def __init__(self, typename, symbol, args):
         self.type   = typename
@@ -286,6 +279,57 @@ class KList(KPrimitive):
         return KList(*list(reversed(self.kexps)))
 
 ################################################################################
+# KClosure
+#   - slightly more advanced primitive with its own methods
+#   - handles unevaluated functions
+####
+
+class KClosure(KPrimitive):
+    def __init__(self, body, names, env):
+        self.body  = body
+        self.names = names
+        self.env   = env
+        self.type  = "closure"
+    def __str__(self):
+        return "KClosure({body}: ({names}) with env ({env}))".format(
+            body  = self.body,
+            names = ', '.join([str(name) for name in self.names]),
+            env   = self.env
+        )
+
+################################################################################
+# KApplication
+#   - takes a function (closure) and applies the given arguments to it
+####
+
+class KApplication(KExpression):
+    def __init__(self, function, args):
+        self.function = function
+        self.args     = args
+        self.type     = "application"
+    def __str__(self):
+        return "KApp({function} | ({args}))".format(
+            function = self.function,
+            args     = ', '.join([str(arg) for arg in self.args])
+        )
+
+################################################################################
+# KLambda
+#   - creates a function spontaneously with free variables
+####
+
+class KLambda(KExpression):
+    def __init__(self, body, args):
+        self.body = body
+        self.args = args
+        self.type = "lambda"
+    def __str__(self):
+        return "KLambda({args}: {body})".format(
+            args = ', '.join([str(arg) for arg in self.args]),
+            body = self.body
+        )
+
+################################################################################
 # KEnvironment
 #   - environmental abilities are handled with this
 ####
@@ -299,7 +343,6 @@ class KBinding(KExpression):
         self.symbol = symbol
         self.kexp = kexp
         self.type = "binding"
-        self.raw = "{} -> {}".format(symbol, kexp)
     def __str__(self):
         return "({} -> {})".format(self.symbol, self.kexp)
 
@@ -322,6 +365,12 @@ class KEnvironment(KExpression):
         return iter(self.bindings)
 
 empty_env = KEnvironment()
+
+def bind(symbol, kexp):
+    return KBinding(symbol, kexp)
+
+def extend_env(binding, env):
+    return env + binding
 
 def lookup(symbol, env):
     if not isinstance(env, KEnvironment):

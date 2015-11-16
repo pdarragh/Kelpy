@@ -21,17 +21,13 @@ def print_welcome():
 def goodbye():
     print("\nThank you for using Kelpy!")
 
-def get_parsed_input(user_input, show_raw=False, show_parse=False):
+def get_parsed_input(user_input, show_parse=False):
     """
     :return: input from the user
     """
     kexp = kelpy.parse(user_input)
-    if show_raw:
-        output = repr(kexp)
-    else:
-        output = str(kexp)
     if show_parse:
-        print("~ {}".format(output))
+        print("~ {}".format(kexp))
     return kexp
 
 def kelp_help(message):
@@ -59,7 +55,6 @@ BUILTINS = {
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw', action='store_true')
     parser.add_argument('-s', '--show-parse', action='store_true')
     parser.add_argument('-p', '--parse-only', action='store_true')
     args = parser.parse_args()
@@ -72,7 +67,7 @@ if __name__ == '__main__':
             if user_input.split()[0].lower() in BUILTINS:
                 builtin_delegate(user_input.lower())
                 continue
-            kexp = get_parsed_input(user_input, args.raw, args.show_parse)
+            kexp = get_parsed_input(user_input, args.show_parse)
             if not args.parse_only:
                 result = kelpy.interpret(kexp, kelpy.types.empty_env)
                 print('~ {}'.format(result.type))

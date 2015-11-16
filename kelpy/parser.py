@@ -112,6 +112,25 @@ def parse(text):
             parse(interior[1]),
             parse(parses[2])
         )
+    ####
+    # Lambda
+    elif kexp_match("{lambda {SYMBOL ...} ANY}", text):
+        parses = kexp_to_list(text)
+        symbols = kexp_to_list(parses[1])
+        return KLambda(
+            parse(parses[-1]),
+            [parse(symbol) for symbol in symbols]
+        )
+    ####
+    # Functions
+    elif kexp_match("{ANY ANY ...}", text):
+        parses = kexp_to_list(text)
+        return KApplication(
+            parse(parses[0]),
+            parse_function_args(text)
+        )
+    ####
+    # Something else
     else:
         raise ParseException("Invalid input.")
 
