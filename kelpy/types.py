@@ -206,7 +206,7 @@ def rest(klist):
 def reverse(klist):
     if not isinstance(klist, KList):
         raise InvalidReverseException(klist)
-    return klist.reverse
+    return klist.reversed
 
 def prepend(item, klist):
     if not isinstance(item, KExpression):
@@ -275,7 +275,7 @@ class KList(KPrimitive):
     def empty(self):
         return len(self.kexps) == 0
     @property
-    def reverse(self):
+    def reversed(self):
         return KList(*list(reversed(self.kexps)))
 
 ################################################################################
@@ -363,6 +363,9 @@ class KEnvironment(KExpression):
             return KEnvironment(*(self.bindings + other.bindings))
     def __iter__(self):
         return iter(self.bindings)
+    @property
+    def reversed(self):
+        return KEnvironment(*self.bindings.reversed)
 
 empty_env = KEnvironment()
 
@@ -375,7 +378,9 @@ def extend_env(binding, env):
 def lookup(symbol, env):
     if not isinstance(env, KEnvironment):
         raise BadLookupException(symbol)
-    for binding in env:
+    # We iterate over the bindings in reverse order to ensure that more-recently
+    # bound values will be found first (i.e. we enforce scoping).
+    for binding in env.reversed:
         if binding.symbol == symbol:
             return binding.kexp
 
@@ -396,22 +401,4 @@ class KIf(KExpression):
             test    = self.test,
             true    = self.true,
             false   = self.false
-        )
-
-################################################################################
-# KLet
-#   - let things be other things
-####
-
-class KLet(KExpression):
-    def __init__(self, name, value, body):
-        self.name   = name
-        self.value  = value
-        self.body   = body
-        self.type   = "KLet"
-    def __str__(self):
-        return "with ({name} -> {value}) : {body}".format(
-            name    = self.name,
-            value   = self.value,
-            body    = self.body
         )

@@ -107,10 +107,12 @@ def parse(text):
     elif kexp_match("{let {SYMBOL ANY} ANY}", text):
         parses = kexp_to_list(text)
         interior = kexp_to_list(parses[1])
-        return KLet(
-            parse(interior[0]),
-            parse(interior[1]),
-            parse(parses[2])
+        return KApplication(
+            KLambda(
+                parse(parses[2]),
+                [parse(interior[0])]
+            ),
+            [parse(interior[1])]
         )
     ####
     # Lambda

@@ -181,3 +181,13 @@ class InvalidExpressionTypeException(ParseException):
     def __init__(self, expression=None):
         message = "Invalid expression type given to parser."
         super(InvalidExpressionTypeException, self).__init__(message, expression)
+
+class BadBindingNameException(ParseException):
+    def __init__(self, expression=None):
+        message = "Bad binding to name."
+        super(BadBindingNameException, self).__init__(message, expression)
+
+class BadBindingValueException(ParseException):
+    def __init__(self, expression=None):
+        message = "Bad binding with value."
+        super(BadBindingValueException, self).__init__(message, expression)

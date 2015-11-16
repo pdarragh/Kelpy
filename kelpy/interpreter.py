@@ -28,7 +28,6 @@ def interpret(kexp, env):
     return {
         KSymbol         : interpret_symbol,
         KIf             : interpret_if,
-        KLet            : interpret_let,
         KLambda         : interpret_lambda,
         KApplication    : interpret_application,
     }.get(type(kexp), interpret_default)(kexp, env)
@@ -49,12 +48,6 @@ def interpret_if(kif, env):
         return interpret(kif.true, env)
     else:
         return interpret(kif.false, env)
-
-def interpret_let(klet, env):
-    return interpret(
-        klet.body,
-        (env + KBinding(klet.name, klet.value))
-    )
 
 def interpret_lambda(klambda, env):
     return KClosure(klambda.body, klambda.args, env)
