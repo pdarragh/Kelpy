@@ -53,7 +53,7 @@ def test_parse_if(text):
 
 @params("{let {'x 3} 0}")
 def test_parse_let(text):
-    assert isinstance(parser.parse(text), KLet)
+    assert isinstance(parser.parse(text), KApplication)
 
 @params('blah blah blah')
 def test_parse_parseexception(text):

@@ -45,4 +45,4 @@ def test_klist_math():
     assert a.first == KNumber(1)
     assert a.rest == KList(KNumber(2), KNumber(3))
     assert a.empty == False
-    assert a.reverse == KList(KNumber(3), KNumber(2), KNumber(1))
+    assert a.reversed == KList(KNumber(3), KNumber(2), KNumber(1))
